@@ -1,0 +1,214 @@
+:root {
+    --bg-color: #0f172a;
+    --card-bg: rgba(30, 41, 59, 0.7);
+    --accent-blue: #38bdf8;
+    --accent-purple: #818cf8;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --danger: #ef4444;
+    --success: #22c55e;
+    --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--bg-color);
+    background-image: 
+        radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+        radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+        radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 2rem;
+}
+
+.app-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.logo h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.logo span {
+    color: var(--accent-blue);
+}
+
+.status-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--card-bg);
+    padding: 0.5rem 1rem;
+    border-radius: 99px;
+    border: 1px solid var(--glass-border);
+    font-size: 0.875rem;
+}
+
+.indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--danger);
+}
+
+.status-badge.online .indicator {
+    background: var(--success);
+    box-shadow: 0 0 10px var(--success);
+}
+
+.overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.card {
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-card h3 {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card p {
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+#current-alert.alert-active {
+    color: var(--danger);
+    animation: blink 2s infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.content-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.screen-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.screen-item {
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid var(--glass-border);
+    padding: 1rem;
+    border-radius: 1rem;
+    text-align: center;
+}
+
+.screen-item .id {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.screen-item .content {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    display: block;
+}
+
+.screen-item.offline {
+    opacity: 0.5;
+    border-style: dashed;
+}
+
+.action-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: none;
+    border-radius: 1rem;
+    color: white;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.action-btn.emergency { background: linear-gradient(135deg, #ef4444, #991b1b); }
+.action-btn.promo { background: linear-gradient(135deg, #38bdf8, #1e40af); }
+.action-btn.update { background: linear-gradient(135deg, #818cf8, #4338ca); }
+
+.action-btn:hover {
+    filter: brightness(1.1);
+    transform: scale(1.02);
+}
+
+.log-container h3 {
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.log-list {
+    height: 200px;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 0.75rem;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+}
+
+.log-entry {
+    margin-bottom: 0.25rem;
+    border-left: 2px solid var(--accent-blue);
+    padding-left: 0.5rem;
+}
+
+.log-entry.critical { border-left-color: var(--danger); }

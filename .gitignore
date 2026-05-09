@@ -1,0 +1,17 @@
+# MQTT Broker Data & Logs
+mosquitto/data/
+mosquitto/log/
+
+# Python
+venv/
+__pycache__/
+*.pyc
+logs_*.txt
+
+# Node / Dashboard
+node_modules/
+dashboard/dist/
+.env
+
+# System
+.DS_Store
