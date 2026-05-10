@@ -1,10 +1,11 @@
 import time
 import json
 from common import MqttNode
+from colorama import Fore, Style
 
 class MaintenanceMonitor(MqttNode):
     def __init__(self):
-        super().__init__(client_id="maintenance-monitor")
+        super().__init__(client_id="monitor-main", node_type="MONITOR", color=Fore.BLUE)
         self.screens = {}
 
     def start(self):
@@ -12,13 +13,10 @@ class MaintenanceMonitor(MqttNode):
         while not self.connected:
             time.sleep(0.1)
             
-        # Subscribe to health reports (including those from LWT)
         self.client.subscribe("health/+")
-        
-        # Subscribe to state requests (Request-Response Pattern)
         self.client.subscribe("request/status")
         
-        print("[Maintenance] Monitoring screen fleet health...")
+        self.log(f"{Style.BRIGHT}Monitoring screen fleet health...{Style.RESET_ALL}")
         try:
             while True:
                 time.sleep(1)
@@ -33,16 +31,16 @@ class MaintenanceMonitor(MqttNode):
             screen_id = topic.split("/")[1]
             status = payload.get("status", "unknown")
             self.screens[screen_id] = payload
-            print(f"[Maintenance] Screen {screen_id} status: {status}")
+            
             if status == "offline":
-                print(f"[!!! ALERT !!!] Screen {screen_id} has gone DARK!")
+                self.log(f"{Fore.RED}{Style.BRIGHT}[!!! ALERT !!!] Screen {screen_id} has gone DARK!{Style.RESET_ALL}")
+            else:
+                self.log(f"{Fore.LIGHTBLACK_EX}Screen {screen_id} heartbeat: {status} | Temp: {payload.get('temp')}°C{Style.RESET_ALL}")
         
         elif topic == "request/status":
-            # Handle Request-Response
             screen_id = payload.get("screen_id")
-            print(f"[Maintenance] Received state request from {screen_id}")
+            self.log(f"{Fore.YELLOW}Received Sync Request from {screen_id}{Style.RESET_ALL}")
             
-            # Check for properties
             response_topic = None
             correlation_data = None
             if msg.properties:
@@ -52,9 +50,9 @@ class MaintenanceMonitor(MqttNode):
                     correlation_data = msg.properties.CorrelationData
             
             if response_topic:
-                print(f"[Maintenance] Sending response to {response_topic}")
+                self.log(f"  -> Replying to {response_topic}...")
                 response_payload = json.dumps({
-                    "content": "Current Global Promo",
+                    "content": "Global Default: Welcome!",
                     "server_time": time.time(),
                     "status": "synchronized"
                 })

@@ -18,23 +18,102 @@ Sistem ini adalah implementasi lengkap koordinasi Papan Reklame Digital mengguna
 9.  **Shared Subscription**: Data analitik diproses oleh sekumpulan worker menggunakan prefix `$share/`. Beban kerja terbagi rata di antara worker.
 10. **Flow Control**: Client disetel dengan `Receive Maximum` untuk membatasi jumlah pesan in-flight (demonstrasi backpressure).
 
-## Cara Menjalankan
+## Cara Menjalankan (Rekomendasi: Terminal Terpisah)
 
-1.  **Persyaratan**: Docker & Python 3.12.
-2.  **Jalankan Broker**:
+Agar Anda bisa melihat interaksi log antar komponen secara langsung (dengan warna log yang interaktif), sangat disarankan untuk membuka beberapa **Tab Terminal** atau **Split Terminal** di IDE Anda (misal: VS Code / Cursor).
+
+1.  **Persiapan**:
+    Pastikan Broker dan Virtual Environment sudah siap:
     ```bash
     docker compose up -d
     ```
-3.  **Jalankan Demo**:
+
+2.  **Buka Terminal 1 (Maintenance Monitor)**:
+    Jalankan komponen pemantau kesehatan:
     ```bash
-    ./run_demo.sh
+    source venv/bin/activate
+    python maintenance_monitor.py
     ```
-4.  **Buka Dashboard**:
-    Akses `http://localhost:8080` di browser Anda.
+
+3.  **Buka Terminal 2 & 3 (Analytics Workers - Subscriber)**:
+    Jalankan worker untuk melihat bagaimana mereka membagi tugas menggunakan *Shared Subscriptions*:
+    ```bash
+    # Terminal 2
+    source venv/bin/activate
+    python analytics_worker.py 1
+    
+    # Terminal 3
+    source venv/bin/activate
+    python analytics_worker.py 2
+    ```
+
+4.  **Buka Terminal 4, 5, 6 (Screen Clients - Subscriber & Publisher)**:
+    Jalankan layar di terminal yang berbeda-beda agar terlihat perubahan kontennya:
+    ```bash
+    # Terminal 4
+    source venv/bin/activate
+    python screen_client.py A101 Lobby
+    
+    # Terminal 5
+    source venv/bin/activate
+    python screen_client.py A102 Lobby
+    
+    # Terminal 6
+    source venv/bin/activate
+    python screen_client.py B201 Gate
+    
+    # Anda juga bisa membuka lebih banyak terminal untuk FoodCourt atau Parking:
+    # python screen_client.py C301 FoodCourt
+    # python screen_client.py D401 Parking
+    ```
+
+5.  **Buka Terminal 7 (Content Scheduler - Publisher)**:
+    Jalankan pengatur jadwal untuk mulai mempublikasikan konten secara teratur ke layar:
+    ```bash
+    source venv/bin/activate
+    python scheduler.py
+    ```
+
+6.  **Buka Terminal Tambahan untuk Publisher Baru**:
+    Simulasikan injeksi data *real-time*:
+    ```bash
+    # Cuaca (Publisher ke environment/+/weather)
+    source venv/bin/activate
+    python weather_updater.py
+    
+    # Bidding Iklan (Publisher overriding dengan QoS 1 Retain)
+    source venv/bin/activate
+    python ad_bidder.py
+    ```
+
+7.  **Buka Terminal untuk Sinkronisasi DB (Subscriber Murni)**:
+    Simulasikan backend database yang menyedot semua data (Wildcard `#`):
+    ```bash
+    source venv/bin/activate
+    python db_logger.py
+    ```
+
+8.  **Buka Terminal Terakhir (Dashboard Web)**:
+    Jalankan server lokal untuk membuka UI Dashboard interaktif:
+    ```bash
+    source venv/bin/activate
+    cd dashboard && python3 -m http.server 8080
+    ```
+    Lalu akses `http://localhost:8080` di browser Anda.
+
+### Simulasi Darurat (Emergency - Publisher)
+Buka terminal kapan saja dan jalankan perintah ini untuk melihat bagaimana **QoS 2** dan **Wildcard** bereaksi memotong semua konten di layar seketika:
+```bash
+source venv/bin/activate
+python emergency.py "EVAKUASI AREA LOBBY SEKARANG"
+```
 
 ## Arsitektur Simulasi
-- **Content Scheduler**: Publisher yang mengatur jadwal konten.
-- **Emergency System**: Publisher untuk pesan darurat prioritas tinggi.
-- **Screen Client**: Simulasi layar fisik (A101, A102, B201).
-- **Maintenance Monitor**: Menangani kesehatan layar dan Request-Response.
-- **Analytics Workers**: Memproses data penonton secara terdistribusi.
+- **Content Scheduler**: Publisher (mengatur jadwal).
+- **Emergency System**: Publisher (pesan darurat prioritas tinggi).
+- **Weather Updater**: Publisher (update cuaca lokal per zona).
+- **Ad Bidder**: Publisher (Bidding iklan real-time yang mem-bypass jadwal).
+- **Screen Client**: Subscriber & Publisher (menerima konten & cuaca, mengirim health & analitik).
+- **Maintenance Monitor**: Subscriber & Publisher (menangani LWT dan sinkronisasi boot).
+- **Analytics Workers**: Subscriber (memproses data dengan *Shared Subscriptions* `$share/`).
+- **Database Logger**: Subscriber Murni (menggunakan Wildcard `#` untuk sinkronisasi DB).

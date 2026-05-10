@@ -5,69 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MQTT Signage Controller - Dashboard</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 </head>
 <body>
+    <div class="ambient-background"></div>
     <div class="app-container">
         <header>
             <div class="logo">
-                <span class="pulse"></span>
-                <h1>Signage<span>Control</span></h1>
+                <div class="pulse-ring"></div>
+                <h1>Signage<span class="highlight">Nexus</span></h1>
             </div>
             <div class="status-badge" id="broker-status">
                 <div class="indicator"></div>
-                <span>Connecting...</span>
+                <span>Connecting to Broker...</span>
             </div>
         </header>
 
         <main>
             <section class="overview-grid">
-                <div class="card stat-card">
-                    <h3>Active Screens</h3>
-                    <p id="active-screens-count">0</p>
-                    <div class="mini-chart" id="screen-trend"></div>
+                <div class="card stat-card glow-blue">
+                    <div class="stat-icon">📺</div>
+                    <div class="stat-content">
+                        <h3>Active Fleet</h3>
+                        <p id="active-screens-count">0 <span class="subtitle">Online Screens</span></p>
+                    </div>
                 </div>
-                <div class="card stat-card">
-                    <h3>Current Alert</h3>
-                    <p id="current-alert" class="alert-none">No active alerts</p>
+                <div class="card stat-card glow-red">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-content">
+                        <h3>System Status</h3>
+                        <p id="current-alert" class="alert-none">All Systems Nominal</p>
+                    </div>
                 </div>
-                <div class="card stat-card">
-                    <h3>Network Load</h3>
-                    <p id="network-load">Low</p>
+                <div class="card stat-card glow-purple">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-content">
+                        <h3>Audience Metrics</h3>
+                        <p id="total-viewers">0 <span class="subtitle">Current Viewers</span></p>
+                    </div>
                 </div>
             </section>
 
             <section class="content-row">
                 <div class="card screen-list-card">
                     <div class="card-header">
-                        <h2>Fleet Overview</h2>
-                        <button class="btn-refresh" id="btn-refresh">Refresh</button>
+                        <h2>Fleet Monitors</h2>
+                        <div class="legend">
+                            <span class="dot online"></span> Online
+                            <span class="dot offline"></span> Offline
+                        </div>
                     </div>
                     <div class="screen-grid" id="screen-grid">
-                        <!-- Screens will be injected here -->
+                        <!-- Screens injected here -->
                     </div>
                 </div>
 
-                <div class="card action-card">
-                    <h2>Quick Actions</h2>
-                    <div class="action-grid">
-                        <button class="action-btn emergency" id="btn-fire">
-                            <span class="icon">🔥</span>
-                            Fire Alert
-                        </button>
-                        <button class="action-btn promo" id="btn-promo">
-                            <span class="icon">🛍️</span>
-                            Push Promo
-                        </button>
-                        <button class="action-btn update" id="btn-clear">
-                            <span class="icon">🧹</span>
-                            Clear Alerts
-                        </button>
+                <div class="side-panel">
+                    <div class="card action-card">
+                        <h2>Command Center</h2>
+                        <p class="subtitle mb-4">Broadcast global commands (MQTT Pub)</p>
+                        <div class="action-grid">
+                            <button class="action-btn emergency" id="btn-fire">
+                                <span class="icon">🚨</span>
+                                <span>Evacuation Alert (QoS 2)</span>
+                            </button>
+                            <button class="action-btn promo" id="btn-promo">
+                                <span class="icon">✨</span>
+                                <span>Flash Promo (Retain)</span>
+                            </button>
+                            <button class="action-btn update" id="btn-clear">
+                                <span class="icon">✅</span>
+                                <span>Clear Alerts</span>
+                            </button>
+                        </div>
                     </div>
                     
-                    <div class="log-container">
-                        <h3>Event Log</h3>
+                    <div class="card log-card">
+                        <h2>Live Telemetry</h2>
                         <div id="event-log" class="log-list"></div>
                     </div>
                 </div>

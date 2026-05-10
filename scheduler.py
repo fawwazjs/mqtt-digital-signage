@@ -2,35 +2,34 @@ import time
 import json
 import sys
 from common import MqttNode
+from colorama import Fore, Style
 
 class ContentScheduler(MqttNode):
     def __init__(self):
-        super().__init__(client_id="content-scheduler")
+        super().__init__(client_id="scheduler-1", node_type="SCHEDULER", color=Fore.MAGENTA)
         
     def start(self):
         self.connect()
         while not self.connected:
             time.sleep(0.1)
             
-        # Example contents
         campaigns = [
-            {"id": "C001", "content": "Welcome to the Mall", "type": "image", "duration": 30},
-            {"id": "C002", "content": "Special Sale: 50% Off", "type": "video", "duration": 15},
-            {"id": "C003", "content": "Flight Info: Delayed", "type": "html", "duration": 60}
+            {"id": "CAMP_MORNING", "content": "Good Morning! Get 20% off Coffee ☕", "type": "image", "duration": 15, "target": "zone/Lobby"},
+            {"id": "CAMP_LUNCH", "content": "Lunch Special: Burger + Fries 🍔", "type": "video", "duration": 30, "target": "zone/Lobby"},
+            {"id": "CAMP_GATE", "content": "Flight GA-100 Boarding Now ✈️", "type": "html", "duration": 60, "target": "B201"},
+            {"id": "CAMP_GENERAL", "content": "Welcome to the Mall! Enjoy your stay 🛍️", "type": "image", "duration": 20, "target": "zone/Lobby"}
         ]
         
-        print("[Scheduler] Starting content broadcast loop...")
+        self.log("Starting content broadcast loop...")
         try:
+            index = 0
             while True:
-                for camp in campaigns:
-                    # Publish to all screens in Lobby
-                    self.publish_content("zone/Lobby", camp)
-                    time.sleep(5)
-                    
-                    # Publish to specific screen
-                    self.publish_content("A101", camp)
-                    time.sleep(5)
+                camp = campaigns[index % len(campaigns)]
+                self.publish_content(camp["target"], camp)
+                index += 1
+                time.sleep(8) # Wait 8 seconds between scheduling
         except KeyboardInterrupt:
+            self.log(f"{Fore.YELLOW}Shutting down scheduler...{Style.RESET_ALL}")
             self.stop()
 
     def publish_content(self, target, campaign):
@@ -40,17 +39,15 @@ class ContentScheduler(MqttNode):
             "timestamp": time.time()
         })
         
-        # User Properties (MQTT 5.0)
         user_props = [
             ("campaign_id", campaign["id"]),
             ("content_type", campaign["type"]),
             ("duration", str(campaign["duration"]))
         ]
         
-        print(f"[Scheduler] Publishing campaign {campaign['id']} to {target}")
+        self.log(f"Pushing Campaign {Fore.YELLOW}{campaign['id']}{Style.RESET_ALL} -> Target: {Fore.CYAN}{target}{Style.RESET_ALL}")
+        self.log(f"  Content: '{campaign['content']}'")
         
-        # QoS 1: Content updates must arrive
-        # Retain: New screens joining get the current content
         self.publish(topic, payload, qos=1, retain=True, user_properties=user_props)
 
 if __name__ == "__main__":

@@ -2,10 +2,11 @@ import time
 import json
 import sys
 from common import MqttNode
+from colorama import Fore, Style
 
 class EmergencySystem(MqttNode):
     def __init__(self):
-        super().__init__(client_id="emergency-system")
+        super().__init__(client_id="emergency-system", node_type="EMERGENCY", color=Fore.RED)
         
     def start(self, message="FIRE EVACUATION IMMEDIATELY"):
         self.connect()
@@ -19,15 +20,13 @@ class EmergencySystem(MqttNode):
             "timestamp": time.time()
         })
         
-        # MQTT 5.0 Features:
-        # QoS 2: Exactly once delivery (Critical for emergencies)
-        # Message Expiry: Alerts shouldn't be delivered if screens are offline for > 1 hour
         expiry = 3600 
         
-        print(f"[Emergency] BROADCASTING CRITICAL ALERT: {message}")
+        self.log(f"{Style.BRIGHT}{Fore.RED}!!! BROADCASTING CRITICAL ALERT !!!{Style.RESET_ALL}")
+        self.log(f"Message: {message}")
+        
         self.publish(topic, payload, qos=2, retain=False, expiry=expiry)
         
-        # Keep alive for a bit to ensure delivery
         time.sleep(2)
         self.stop()
 

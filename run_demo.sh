@@ -11,15 +11,27 @@ echo "✅ Maintenance Monitor started."
 ./venv/bin/python3 -u analytics_worker.py 2 > logs_worker2.txt 2>&1 &
 echo "✅ Analytics Workers (Shared Sub) started."
 
-# 3. Start Screen Clients (3 instances in different zones)
+# 3. Start Screen Clients (More instances in different zones)
 ./venv/bin/python3 -u screen_client.py A101 Lobby > logs_screen_A101.txt 2>&1 &
 ./venv/bin/python3 -u screen_client.py A102 Lobby > logs_screen_A102.txt 2>&1 &
 ./venv/bin/python3 -u screen_client.py B201 Gate > logs_screen_B201.txt 2>&1 &
-echo "✅ Screen Clients started."
+./venv/bin/python3 -u screen_client.py C301 FoodCourt > logs_screen_C301.txt 2>&1 &
+./venv/bin/python3 -u screen_client.py C302 FoodCourt > logs_screen_C302.txt 2>&1 &
+./venv/bin/python3 -u screen_client.py D401 Parking > logs_screen_D401.txt 2>&1 &
+echo "✅ Screen Clients started (6 Screens)."
 
 # 4. Start Content Scheduler
 ./venv/bin/python3 -u scheduler.py > logs_scheduler.txt 2>&1 &
 echo "✅ Content Scheduler started."
+
+# 4.5 Start Additional Publishers (Weather & Ad Bidder)
+./venv/bin/python3 -u weather_updater.py > logs_weather.txt 2>&1 &
+./venv/bin/python3 -u ad_bidder.py > logs_bidder.txt 2>&1 &
+echo "✅ Weather Service & Ad Bidding Engine started."
+
+# 4.6 Start Additional Subscriber (Database Logger)
+./venv/bin/python3 -u db_logger.py > logs_db_logger.txt 2>&1 &
+echo "✅ Database Logger started."
 
 # 5. Start Dashboard Server
 echo "🌐 Starting Dashboard on http://localhost:8080"
