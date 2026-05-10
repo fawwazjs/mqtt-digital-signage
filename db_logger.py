@@ -10,9 +10,6 @@ class DatabaseLogger(MqttNode):
 
     def start(self):
         self.connect()
-        while not self.connected:
-            time.sleep(0.1)
-            
         # Subscribe to literally EVERYTHING on the broker
         self.log(f"Subscribing to {Fore.YELLOW}#{Style.RESET_ALL} (All Topics) for DB persistence...")
         self.client.subscribe("#", qos=2)

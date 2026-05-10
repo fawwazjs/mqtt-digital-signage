@@ -11,9 +11,6 @@ class AdBidder(MqttNode):
         
     def start(self):
         self.connect()
-        while not self.connected:
-            time.sleep(0.1)
-            
         brands = ["Rolex", "Nike", "Coca-Cola", "Samsung", "Apple"]
         
         self.log("Starting Real-time Bidding Engine...")

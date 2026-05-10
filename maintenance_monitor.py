@@ -1,7 +1,8 @@
-import time
 import json
+import time
 from common import MqttNode
 from colorama import Fore, Style
+
 
 class MaintenanceMonitor(MqttNode):
     def __init__(self):
@@ -10,13 +11,9 @@ class MaintenanceMonitor(MqttNode):
 
     def start(self):
         self.connect()
-        while not self.connected:
-            time.sleep(0.1)
-            
-        self.client.subscribe("health/+")
-        self.client.subscribe("request/status")
-        
-        self.log(f"{Style.BRIGHT}Monitoring screen fleet health...{Style.RESET_ALL}")
+        self.subscribe("$share/maintenance-group/display/+/status", qos=1)
+        self.subscribe("display/+/health", qos=1)
+        self.log(f"{Style.BRIGHT}Monitoring screen fleet...{Style.RESET_ALL}")
         try:
             while True:
                 time.sleep(1)
@@ -25,42 +22,39 @@ class MaintenanceMonitor(MqttNode):
 
     def on_message(self, client, userdata, msg):
         topic = msg.topic
-        payload = json.loads(msg.payload.decode())
-        
-        if topic.startswith("health/"):
-            screen_id = topic.split("/")[1]
+        try:
+            payload = json.loads(msg.payload.decode())
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            self.log(f"Malformed message on {topic}: {exc}", color=Fore.RED)
+            return
+
+        parts = topic.split("/")
+        display_id = parts[-2] if len(parts) >= 2 else "unknown"
+
+        if parts[-1] == "status":
             status = payload.get("status", "unknown")
-            self.screens[screen_id] = payload
-            
+            self.screens[display_id] = payload
             if status == "offline":
-                self.log(f"{Fore.RED}{Style.BRIGHT}[!!! ALERT !!!] Screen {screen_id} has gone DARK!{Style.RESET_ALL}")
+                self.log(f"{Fore.RED}{Style.BRIGHT}[OFFLINE] {display_id}{Style.RESET_ALL}", category="LWT")
+                self._alert(display_id, "Display offline via LWT")
             else:
-                self.log(f"{Fore.LIGHTBLACK_EX}Screen {screen_id} heartbeat: {status} | Temp: {payload.get('temp')}°C{Style.RESET_ALL}")
-        
-        elif topic == "request/status":
-            screen_id = payload.get("screen_id")
-            self.log(f"{Fore.YELLOW}Received Sync Request from {screen_id}{Style.RESET_ALL}")
-            
-            response_topic = None
-            correlation_data = None
-            if msg.properties:
-                if hasattr(msg.properties, 'ResponseTopic'):
-                    response_topic = msg.properties.ResponseTopic
-                if hasattr(msg.properties, 'CorrelationData'):
-                    correlation_data = msg.properties.CorrelationData
-            
-            if response_topic:
-                self.log(f"  -> Replying to {response_topic}...")
-                response_payload = json.dumps({
-                    "content": "Global Default: Welcome!",
-                    "server_time": time.time(),
-                    "status": "synchronized"
-                })
-                self.publish(
-                    response_topic, 
-                    response_payload, 
-                    correlation_data=correlation_data
-                )
+                self.log(f"{Fore.LIGHTBLACK_EX}Status: {display_id} → {status}{Style.RESET_ALL}", category="SUB")
+
+        elif parts[-1] == "health":
+            self.screens[display_id] = payload
+            status = payload.get("status", "unknown")
+            temp = payload.get("temp", "--")
+            self.log(f"{Fore.LIGHTBLACK_EX}{display_id} heartbeat: {status} | Temp: {temp}°C{Style.RESET_ALL}", category="SUB")
+
+    def _alert(self, display_id, reason):
+        self.log(f"Maintenance alert → maintenance/{display_id}/alert", category="PUB")
+        payload = json.dumps({
+            "display_id": display_id,
+            "reason": reason,
+            "timestamp": time.time(),
+        })
+        self.publish(f"maintenance/{display_id}/alert", payload, qos=1)
+
 
 if __name__ == "__main__":
     monitor = MaintenanceMonitor()

@@ -18,94 +18,51 @@ Sistem ini adalah implementasi lengkap koordinasi Papan Reklame Digital mengguna
 9.  **Shared Subscription**: Data analitik diproses oleh sekumpulan worker menggunakan prefix `$share/`. Beban kerja terbagi rata di antara worker.
 10. **Flow Control**: Client disetel dengan `Receive Maximum` untuk membatasi jumlah pesan in-flight (demonstrasi backpressure).
 
-## Cara Menjalankan (Rekomendasi: Terminal Terpisah)
+## Cara Menjalankan
 
-Agar Anda bisa melihat interaksi log antar komponen secara langsung (dengan warna log yang interaktif), sangat disarankan untuk membuka beberapa **Tab Terminal** atau **Split Terminal** di IDE Anda (misal: VS Code / Cursor).
-
-1.  **Persiapan**:
-    Pastikan Broker dan Virtual Environment sudah siap:
-    ```bash
-    docker compose up -d
-    ```
-
-2.  **Buka Terminal 1 (Maintenance Monitor)**:
-    Jalankan komponen pemantau kesehatan:
-    ```bash
-    source venv/bin/activate
-    python maintenance_monitor.py
-    ```
-
-3.  **Buka Terminal 2 & 3 (Analytics Workers - Subscriber)**:
-    Jalankan worker untuk melihat bagaimana mereka membagi tugas menggunakan *Shared Subscriptions*:
-    ```bash
-    # Terminal 2
-    source venv/bin/activate
-    python analytics_worker.py 1
-    
-    # Terminal 3
-    source venv/bin/activate
-    python analytics_worker.py 2
-    ```
-
-4.  **Buka Terminal 4, 5, 6 (Screen Clients - Subscriber & Publisher)**:
-    Jalankan layar di terminal yang berbeda-beda agar terlihat perubahan kontennya:
-    ```bash
-    # Terminal 4
-    source venv/bin/activate
-    python screen_client.py A101 Lobby
-    
-    # Terminal 5
-    source venv/bin/activate
-    python screen_client.py A102 Lobby
-    
-    # Terminal 6
-    source venv/bin/activate
-    python screen_client.py B201 Gate
-    
-    # Anda juga bisa membuka lebih banyak terminal untuk FoodCourt atau Parking:
-    # python screen_client.py C301 FoodCourt
-    # python screen_client.py D401 Parking
-    ```
-
-5.  **Buka Terminal 7 (Content Scheduler - Publisher)**:
-    Jalankan pengatur jadwal untuk mulai mempublikasikan konten secara teratur ke layar:
-    ```bash
-    source venv/bin/activate
-    python scheduler.py
-    ```
-
-6.  **Buka Terminal Tambahan untuk Publisher Baru**:
-    Simulasikan injeksi data *real-time*:
-    ```bash
-    # Cuaca (Publisher ke environment/+/weather)
-    source venv/bin/activate
-    python weather_updater.py
-    
-    # Bidding Iklan (Publisher overriding dengan QoS 1 Retain)
-    source venv/bin/activate
-    python ad_bidder.py
-    ```
-
-7.  **Buka Terminal untuk Sinkronisasi DB (Subscriber Murni)**:
-    Simulasikan backend database yang menyedot semua data (Wildcard `#`):
-    ```bash
-    source venv/bin/activate
-    python db_logger.py
-    ```
-
-8.  **Buka Terminal Terakhir (Dashboard Web)**:
-    Jalankan server lokal untuk membuka UI Dashboard interaktif:
-    ```bash
-    source venv/bin/activate
-    cd dashboard && python3 -m http.server 8080
-    ```
-    Lalu akses `http://localhost:8080` di browser Anda.
-
-### Simulasi Darurat (Emergency - Publisher)
-Buka terminal kapan saja dan jalankan perintah ini untuk melihat bagaimana **QoS 2** dan **Wildcard** bereaksi memotong semua konten di layar seketika:
+### Persiapan (sekali)
 ```bash
-source venv/bin/activate
+uv sync
+```
+Pastikan Docker berjalan, lalu:
+
+### Jalankan
+```bash
+./run_demo.sh
+```
+Skrip ini akan otomatis menjalankan MQTT broker via Docker Compose, lalu membuka **TUI Dashboard** interaktif di terminal yang sama.
+
+Dashboard menampilkan 9 panel dalam grid 3×3 (Halaman 1) dan satu panel log penuh (Halaman 2):
+
+```
+┌─ ANALYTICS WORKERS ─┐┌─ DISPLAY MONITOR ──┐┌─ NOW DISPLAYING ──┐
+│                     ││  ID    Status  Temp ││  Screen → Content │
+├─────────────────────┤├────────────────────┤├───────────────────┤
+│─ WEATHER SERVICE ───┐┌─ AD BIDDER ────────┐┌─ CONTENT SCHEDULER┐
+│                     ││                    ││                   │
+├─────────────────────┴┴────────────────────┴┴───────────────────┤
+│─ PUBLISH EVENTS ──────────────┐┌─ SUBSCRIBE EVENTS ───────────┐│
+│  ⬆ [SERVICE] topic → …       ││  ⬇ [SERVICE] heartbeat: …   ││
+└───────────────────────────────┘└──────────────────────────────┘
+  [1] DASHBOARD  [2] LOGS   [Tab] Switch Page   [Q] Quit
+```
+
+| Tombol | Fungsi |
+|--------|--------|
+| `Tab` | Ganti halaman |
+| `1` / `2` | Langsung ke halaman |
+| `Q` | Keluar (semua service dihentikan) |
+| `Ctrl+C` | Force kill |
+
+### Simulasi Darurat (terminal terpisah)
+Buka terminal baru kapan saja dan jalankan:
+```bash
+source .venv/bin/activate
 python emergency.py "EVAKUASI AREA LOBBY SEKARANG"
+```
+Perintah `--clear` untuk mengakhiri darurat:
+```bash
+python emergency.py --clear
 ```
 
 ## Arsitektur Simulasi

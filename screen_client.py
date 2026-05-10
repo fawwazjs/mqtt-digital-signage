@@ -1,116 +1,138 @@
-import time
 import json
 import random
 import sys
+import time
 from common import MqttNode
-from paho.mqtt.packettypes import PacketTypes
-from paho.mqtt.properties import Properties
 from colorama import Fore, Style
+
+REPORT_INTERVAL_SECONDS = 10
+
 
 class ScreenClient(MqttNode):
     def __init__(self, screen_id, zone_id):
-        # Different colors for different screens just for visual appeal in terminal
         color = random.choice([Fore.LIGHTBLUE_EX, Fore.LIGHTGREEN_EX, Fore.LIGHTYELLOW_EX])
-        super().__init__(client_id=f"screen-{screen_id}", node_type="SCREEN", color=color)
+        super().__init__(client_id=f"screen-{screen_id}", node_type="DISPLAY", color=color)
         self.screen_id = screen_id
         self.zone_id = zone_id
         self.current_content = "Default Logo"
-        
+
     def start(self):
         lwt = {
-            "topic": f"health/{self.screen_id}",
-            "payload": json.dumps({"status": "offline", "reason": "LWT"}),
+            "topic": f"display/{self.screen_id}/status",
+            "payload": json.dumps({"status": "offline", "screen_id": self.screen_id, "reason": "LWT"}),
             "qos": 1,
-            "retain": True
+            "retain": True,
         }
-        
+        self.log(f"Registering LWT on display/{self.screen_id}/status", category="LWT")
         self.connect(last_will=lwt)
-        
-        while not self.connected:
-            time.sleep(0.1)
-            
-        self.client.subscribe(f"display/{self.screen_id}/#")
-        self.client.subscribe(f"display/zone/{self.zone_id}/#")
-        self.client.subscribe("alert/#")
-        self.client.subscribe(f"response/{self.screen_id}")
-        self.client.subscribe(f"environment/{self.zone_id}/weather")
-        
-        self.request_initial_state()
-        
+
+        self.subscribe(f"content/zone/{self.zone_id}/schedule", qos=1)
+        self.subscribe(f"content/display/{self.screen_id}/override", qos=1)
+        self.subscribe("alert/network/#", qos=2)
+        self.subscribe(f"alert/zone/{self.zone_id}/#", qos=2)
+        self.subscribe(f"display/{self.screen_id}/response/playlist", qos=1)
+        self.subscribe(f"environment/{self.zone_id}/weather", qos=0)
+
+        self._request_playlist()
+
         try:
             while True:
-                self.send_health_report()
-                self.send_analytics()
-                # Print a neat "playing" status every loop
+                self._send_health()
+                self._send_analytics()
                 self.log(f"Displaying: [{Fore.CYAN}{self.current_content}{Style.RESET_ALL}]")
-                time.sleep(10)
+                time.sleep(REPORT_INTERVAL_SECONDS)
         except KeyboardInterrupt:
             self.stop()
 
-    def request_initial_state(self):
-        self.log("Requesting initial state from controller...")
+    def _request_playlist(self):
+        self.log("Requesting current playlist from scheduler...", category="PUB")
         self.publish(
-            "request/status",
+            f"display/{self.screen_id}/request/playlist",
             payload=json.dumps({"screen_id": self.screen_id}),
-            response_topic=f"response/{self.screen_id}",
+            qos=1,
+            response_topic=f"display/{self.screen_id}/response/playlist",
             correlation_data=self.screen_id.encode(),
-            user_properties=[("request-type", "init")]
         )
 
-    def send_health_report(self):
-        properties = Properties(PacketTypes.PUBLISH)
-        properties.TopicAlias = 1 
-        
+    def _send_health(self):
         payload = json.dumps({
             "status": "online",
+            "screen_id": self.screen_id,
             "temp": random.randint(40, 65),
             "cpu": random.randint(10, 80),
             "memory": random.randint(200, 500),
-            "uptime": int(time.time())
+            "uptime": int(time.time()),
         })
-        self.client.publish(f"health/{self.screen_id}", payload, qos=1, retain=True, properties=properties)
-        self.log(f"{Fore.LIGHTBLACK_EX}Sent health report (Alias: 1){Style.RESET_ALL}")
+        self.publish(f"display/{self.screen_id}/health", payload, qos=0, retain=True)
+        self.log(f"{Fore.LIGHTBLACK_EX}Health report sent.{Style.RESET_ALL}", category="PUB")
 
-    def send_analytics(self):
+    def _send_analytics(self):
         viewers = random.randint(0, 50)
+        peak = "peak" if 7 <= time.localtime().tm_hour < 20 else "off_peak"
         payload = json.dumps({
             "screen_id": self.screen_id,
             "zone_id": self.zone_id,
             "viewer_count": viewers,
-            "timestamp": time.time()
+            "dwell_time": random.randint(5, 120),
+            "peak_period": peak,
+            "timestamp": time.time(),
         })
-        self.publish(f"analytics/{self.zone_id}", payload, qos=0)
-        self.log(f"{Fore.LIGHTBLACK_EX}Sent analytics (Viewers: {viewers}){Style.RESET_ALL}")
+        user_props = [
+            ("zone_type", "lobby"),
+            ("time_bucket", peak),
+            ("confidence_score", "0.85"),
+        ]
+        self.publish(f"analytics/zone/{self.zone_id}/viewership", payload, qos=0, user_properties=user_props)
+        self.log(f"{Fore.LIGHTBLACK_EX}Analytics sent (viewers: {viewers}).{Style.RESET_ALL}", category="PUB")
 
     def on_message(self, client, userdata, msg):
         topic = msg.topic
-        payload = json.loads(msg.payload.decode())
-        
-        if "alert" in topic:
-            self.log(f"\n{Fore.RED}{Style.BRIGHT}=========================================")
-            self.log(f"{Fore.RED}{Style.BRIGHT}[!!! EMERGENCY ALERT !!!]")
-            self.log(f"{Fore.RED}{Style.BRIGHT}MESSAGE : {payload['message']}")
-            self.log(f"{Fore.RED}{Style.BRIGHT}PRIORITY: {payload.get('priority', 'HIGH')}")
-            self.log(f"{Fore.RED}{Style.BRIGHT}========================================={Style.RESET_ALL}\n")
-            self.current_content = f"EMERGENCY: {payload['message']}"
-            
-        elif "content" in topic:
-            self.current_content = payload.get("content", "Unknown")
-            self.log(f"{Fore.GREEN}Content Updated!{Style.RESET_ALL} -> {Fore.CYAN}'{self.current_content}'{Style.RESET_ALL}")
-            if msg.properties and hasattr(msg.properties, 'UserProperty'):
-                props = {k: v for k, v in msg.properties.UserProperty}
-                self.log(f"  Metadata: {Fore.LIGHTMAGENTA_EX}{props}{Style.RESET_ALL}")
-                
-        elif topic.startswith("response/"):
-            self.log(f"Received sync response from controller.")
-            if "content" in payload:
-                self.current_content = payload["content"]
-                self.log(f"Synced content: {Fore.CYAN}'{self.current_content}'{Style.RESET_ALL}")
-                
-        elif "weather" in topic:
+        try:
+            payload = json.loads(msg.payload.decode())
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            self.log(f"Malformed message on {topic}: {exc}", color=Fore.RED)
+            return
+
+        parts = topic.split("/")
+
+        if parts[0] == "alert":
+            self._handle_alert(payload)
+        elif parts[0] == "content":
+            self._handle_content(payload, msg)
+        elif parts[0] == "display" and len(parts) >= 3 and parts[-1] == "playlist":
+            self._handle_playlist_response(payload)
+        elif parts[-1] == "weather":
             temp = payload.get("temperature", "--")
             cond = payload.get("condition", "Unknown")
-            self.log(f"{Fore.BLUE}Weather Update for {self.zone_id}:{Style.RESET_ALL} {temp}°C, {cond}")
+            self.log(f"{Fore.BLUE}Weather: {temp}°C, {cond}{Style.RESET_ALL}")
+
+    def _handle_alert(self, payload):
+        if payload.get("status") == "cleared":
+            self.log(f"{Fore.GREEN}Alert cleared — resuming normal content.{Style.RESET_ALL}", category="SUB")
+            self.current_content = "Default Logo"
+            return
+        message = payload.get("message", "Emergency")
+        self.log(f"\n{Fore.RED}{Style.BRIGHT}=========================================", category="SUB")
+        self.log(f"{Fore.RED}{Style.BRIGHT}[!!! EMERGENCY ALERT !!!]")
+        self.log(f"{Fore.RED}{Style.BRIGHT}MESSAGE : {message}")
+        self.log(f"{Fore.RED}{Style.BRIGHT}SEVERITY: {payload.get('severity', 'CRITICAL')}")
+        self.log(f"{Fore.RED}{Style.BRIGHT}========================================={Style.RESET_ALL}\n")
+        self.current_content = f"EMERGENCY: {message}"
+
+    def _handle_content(self, payload, msg):
+        self.current_content = payload.get("content", "Unknown")
+        self.log(f"{Fore.GREEN}Content updated:{Style.RESET_ALL} {Fore.CYAN}'{self.current_content}'{Style.RESET_ALL}", category="SUB")
+        if msg.properties and hasattr(msg.properties, "UserProperty"):
+            props = dict(msg.properties.UserProperty)
+            self.log(f"  Metadata: {Fore.LIGHTMAGENTA_EX}{props}{Style.RESET_ALL}")
+
+    def _handle_playlist_response(self, payload):
+        playlist = payload.get("playlist", [])
+        self.log(f"Playlist received: {len(playlist)} campaigns.", category="SUB")
+        if playlist:
+            self.current_content = playlist[0].get("content", "Unknown")
+            self.log(f"First campaign loaded: {Fore.CYAN}'{self.current_content}'{Style.RESET_ALL}")
+
 
 if __name__ == "__main__":
     s_id = sys.argv[1] if len(sys.argv) > 1 else "A101"

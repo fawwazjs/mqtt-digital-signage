@@ -3,10 +3,15 @@ mosquitto/data/
 mosquitto/log/
 
 # Python
+.venv/
 venv/
 __pycache__/
 *.pyc
+*.pyo
 logs_*.txt
+
+# AI agent session file
+CLAUDE.md
 
 # Node / Dashboard
 node_modules/
