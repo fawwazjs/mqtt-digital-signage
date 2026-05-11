@@ -8,6 +8,7 @@
   grid-template-rows: 64px 1fr;
   height: 100vh;
   transition: grid-template-columns 200ms ease;
+  --sidebar-w: 104px;
 }
 
 #app.sidebar-expanded {
@@ -55,7 +56,9 @@
   flex: 1;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 8px;
+  overflow: hidden;
 }
 
 .topbar-kpi {
@@ -88,13 +91,12 @@
 .topbar-kpi.ok span:first-child { color: var(--status-online); }
 .topbar-kpi.danger span:first-child { color: var(--status-offline); }
 .topbar-kpi.alert span:first-child { color: var(--status-degraded); }
-}
 
 #topbar-right {
   display: flex;
   align-items: center;
-  gap: 14px;
-  min-width: 300px;
+  gap: 12px;
+  flex-shrink: 0;
   justify-content: flex-end;
 }
 
@@ -371,10 +373,10 @@
 }
 
 .nav-item {
-  display: grid;
-  grid-template-rows: 22px auto;
-  justify-items: center;
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 5px;
   min-height: 66px;
   padding: 9px 7px;
@@ -441,29 +443,31 @@
 }
 
 #app.sidebar-expanded .nav-label {
-  max-width: 74px;
+  max-width: 160px;
   opacity: 1;
 }
 
-/* Notification badge */
+/* Notification badge — anchored to icon corner, independent of label layout */
 .nav-badge {
-  margin-left: auto;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 9px;
-  font-size: 10px;
-  font-weight: 600;
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  font-size: 9px;
+  font-weight: 700;
   font-family: var(--font-mono);
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--status-offline);
   color: #fff;
-  flex-shrink: 0;
   box-shadow: 0 0 8px rgba(255, 23, 68, 0.4);
   transform: scale(0);
   transition: transform var(--duration-fast) var(--ease-out);
+  pointer-events: none;
 }
 
 .nav-badge.warn {

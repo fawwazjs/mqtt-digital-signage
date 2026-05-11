@@ -22,10 +22,13 @@ window.mount_analytics = function(el) {
   _renderAnalytics();
 };
 
+/** @type {() => void} */
+const _debouncedRenderAnalytics = debounce(() => _renderAnalytics(), 500);
+
 /** @param {MqttEnvelope} _msg */
 window.onMsg_analytics = function(_msg) {
   if (!_anRoot) return;
-  _renderAnalytics();
+  _debouncedRenderAnalytics();
 };
 
 function _renderAnalytics() {

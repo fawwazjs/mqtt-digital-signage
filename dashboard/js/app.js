@@ -444,9 +444,6 @@ function _syncNotificationBadges() {
 
   state.unreadCritical = critical;
   _updateBadge(total, severity);
-
-  $notifBellBadge.textContent = total > 0 ? (total > 99 ? "99+" : String(total)) : "";
-  $notifBellBadge.className = total > 0 ? `show ${severity}` : "";
 }
 
 function _refreshFleetKpis() {
