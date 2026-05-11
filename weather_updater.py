@@ -11,7 +11,7 @@ class WeatherUpdater(MqttNode):
         
     def start(self):
         self.connect()
-        conditions = ["Sunny ☀️", "Cloudy ☁️", "Raining 🌧️", "Storm ⛈️"]
+        conditions = ["Sunny", "Cloudy", "Raining", "Storm", "Windy", "Snowing"]
         
         self.log("Starting weather broadcast loop...")
         try:

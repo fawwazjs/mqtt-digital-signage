@@ -11,7 +11,7 @@ class AdBidder(MqttNode):
         
     def start(self):
         self.connect()
-        brands = ["Rolex", "Nike", "Coca-Cola", "Samsung", "Apple"]
+        brands = ["Rolex", "Nike", "Coca-Cola", "Samsung", "Apple", "Adidas", "Lego", "Disney", "Sony", "BMW", "Mercedes", "Gucci", "Prada", "Louis Vuitton", "Tesla"]
         
         self.log("Starting Real-time Bidding Engine...")
         try:

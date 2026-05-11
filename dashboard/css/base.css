@@ -1,0 +1,122 @@
+/* ── Design Tokens ─────────────────────────────────────────────────────────── */
+:root {
+  /* Backgrounds */
+  --bg-primary:   #0F1117;
+  --bg-secondary: #161922;
+  --bg-tertiary:  #1E2230;
+
+  /* Borders */
+  --border: #2A2F3C;
+
+  /* Text */
+  --text-primary:   #E8EAED;
+  --text-secondary: #9AA0AD;
+  --text-muted:     #5F6574;
+
+  /* Semantic status — the ONLY colors with meaning */
+  --status-online:   #00C853;
+  --status-offline:  #FF1744;
+  --status-loading:  #2979FF;
+  --status-degraded: #FF9100;
+
+  /* Interactive */
+  --accent:        #2979FF;
+  --accent-hover:  #448AFF;
+  --accent-active: #1565C0;
+
+  /* Typography */
+  --font-ui:   'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+/* ── Reset ─────────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Typography Scale ──────────────────────────────────────────────────────── */
+.t-page    { font-size: 24px; font-weight: 600; }
+.t-section { font-size: 18px; font-weight: 600; }
+.t-card    { font-size: 15px; font-weight: 600; }
+.t-body    { font-size: 14px; font-weight: 400; }
+.t-small   { font-size: 13px; font-weight: 400; color: var(--text-secondary); }
+.t-label   { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); }
+.t-ts      { font-size: 11px; font-weight: 400; font-family: var(--font-mono); color: var(--text-muted); }
+.t-mono    { font-family: var(--font-mono); }
+
+/* ── Scrollbars ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ── Focus ─────────────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+:focus:not(:focus-visible) { outline: none; }
+
+/* ── Base interactive ──────────────────────────────────────────────────────── */
+button {
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover { color: var(--accent-hover); }
+
+/* ── Status dot helper ─────────────────────────────────────────────────────── */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.status-dot.online   { background: var(--status-online); }
+.status-dot.offline  { background: var(--status-offline); }
+.status-dot.loading  { background: var(--status-loading); }
+.status-dot.degraded { background: var(--status-degraded); }
+
+/* ── Pulse animation (offline markers) ────────────────────────────────────── */
+@keyframes pulse-opacity {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+/* ── Emergency ring (expands outward, fades) ──────────────────────────────── */
+@keyframes emergency-ring {
+  0%   { transform: scale(1); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}

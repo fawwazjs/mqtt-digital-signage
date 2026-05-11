@@ -13,13 +13,11 @@ import threading
 import time
 import tty
 from collections import deque
-from datetime import datetime
 
 from rich.console import Console
 from rich.layout import Layout
 from rich.live import Live
 from rich.panel import Panel
-from rich.table import Table
 from rich.text import Text
 
 # ── Config ────────────────────────────────────────────────────────────────────
@@ -28,52 +26,71 @@ _PY  = sys.executable
 _ENV = {**os.environ, "PYTHONUNBUFFERED": "1"}
 
 SERVICES = [
-    {"name": "monitor",    "cmd": [_PY, "maintenance_monitor.py"]},
-    {"name": "worker-1",   "cmd": [_PY, "analytics_worker.py", "1"]},
-    {"name": "worker-2",   "cmd": [_PY, "analytics_worker.py", "2"]},
-    {"name": "screen-A101","cmd": [_PY, "screen_client.py", "A101", "Lobby"]},
-    {"name": "screen-A102","cmd": [_PY, "screen_client.py", "A102", "Lobby"]},
-    {"name": "screen-B201","cmd": [_PY, "screen_client.py", "B201", "Gate"]},
-    {"name": "screen-C301","cmd": [_PY, "screen_client.py", "C301", "FoodCourt"]},
-    {"name": "scheduler",  "cmd": [_PY, "scheduler.py"]},
-    {"name": "weather",    "cmd": [_PY, "weather_updater.py"]},
-    {"name": "bidder",     "cmd": [_PY, "ad_bidder.py"]},
-    {"name": "db-logger",  "cmd": [_PY, "db_logger.py"]},
+    {"name": "monitor",     "cmd": [_PY, "maintenance_monitor.py"]},
+    {"name": "worker-1",    "cmd": [_PY, "analytics_worker.py", "1"]},
+    {"name": "worker-2",    "cmd": [_PY, "analytics_worker.py", "2"]},
+    {"name": "screen-A101", "cmd": [_PY, "screen_client.py", "A101", "Lobby"]},
+    {"name": "screen-A102", "cmd": [_PY, "screen_client.py", "A102", "Lobby"]},
+    {"name": "screen-B201", "cmd": [_PY, "screen_client.py", "B201", "Gate"]},
+    {"name": "screen-C301", "cmd": [_PY, "screen_client.py", "C301", "FoodCourt"]},
+    {"name": "scheduler",   "cmd": [_PY, "scheduler.py"]},
+    {"name": "weather",     "cmd": [_PY, "weather_updater.py"]},
+    {"name": "bidder",      "cmd": [_PY, "ad_bidder.py"]},
+    {"name": "db-logger",   "cmd": [_PY, "db_logger.py"]},
 ]
 
-_PANEL_COLOR = {
-    "worker": "cyan", "monitor": "yellow", "display": "green",
-    "weather": "blue", "bidder": "magenta", "scheduler": "bright_white",
-    "pub": "cyan", "sub": "green", "log": "white",
+# ── Color Scheme ──────────────────────────────────────────────────────────────
+# borders:      grey42  (uniform, unobtrusive)
+# title label:  vibrant per panel
+# timestamp:    grey70  (muted identifier)
+# [CAT] tag:    vibrant by category
+# message text: white   (readable)
+# noise/dim:    grey70
+
+_BORDER = "grey58"
+
+_TITLE = {
+    "worker":    "bright_cyan",
+    "monitor":   "bright_yellow",
+    "display":   "bright_green",
+    "weather":   "bright_blue",
+    "bidder":    "bright_magenta",
+    "scheduler": "bright_white",
+    "pub":       "bright_cyan",
+    "sub":       "bright_green",
+    "log":       "bright_white",
 }
-_PANEL_TITLE = {
-    "worker": "ANALYTICS WORKERS", "monitor": "DISPLAY MONITOR",
-    "display": "NOW DISPLAYING",   "weather": "WEATHER SERVICE",
-    "bidder": "AD BIDDER",         "scheduler": "CONTENT SCHEDULER",
-    "pub": "PUBLISH EVENTS",       "sub": "SUBSCRIBE EVENTS",
-    "log": "SYSTEM LOG",
+
+_CAT = {
+    "PUB":  "bright_cyan",
+    "SUB":  "bright_green",
+    "CONN": "bright_yellow",
+    "DISC": "bright_red",
+    "LWT":  "bright_red",
 }
-_SVC_COLOR = {
-    "MONITOR": "blue", "WORKER": "yellow", "DISPLAY": "green",
-    "WEATHER": "cyan", "BIDDER": "magenta", "SCHEDULER": "bright_white",
+
+_PANEL_META = {
+    "worker":    ("ANALYTICS WORKERS", "analytics_worker.py"),
+    "monitor":   ("SIGNAGE HEALTH",    "maintenance_monitor.py"),
+    "display":   ("NOW DISPLAYING",    "screen_client.py"),
+    "weather":   ("WEATHER SERVICE",   "weather_updater.py"),
+    "bidder":    ("AD BIDDER",         "ad_bidder.py"),
+    "scheduler": ("CONTENT SCHEDULER", "scheduler.py"),
+    "pub":       ("PUBLISH EVENTS",    "screen_client.py"),
+    "sub":       ("SUBSCRIBE EVENTS",  "screen_client.py"),
+    "log":       ("SYSTEM LOG",        "db_logger.py"),
 }
 
 # ── ANSI Utilities ────────────────────────────────────────────────────────────
 
 _STRIP_ALL = re.compile(r'\x1b\[[0-9;]*[A-Za-z]|\x1b.')
-_STRIP_CSI = re.compile(               # remove cursor/erase/private; keep SGR (*m)
-    r'\x1b\[[0-9;]*[ABCDEFGHJKSTfnsu]'
-    r'|\x1b\[[?][0-9;]*[hl]'
-    r'|\x1b[^\[]'
-)
 
-def _clean(s):   return _STRIP_ALL.sub('', s)
-def _sanitize(s): return _STRIP_CSI.sub('', s)
+def _clean(s): return _STRIP_ALL.sub('', s)
 
 # ── Log Parser ────────────────────────────────────────────────────────────────
 
 _LOG_RE = re.compile(
-    r'^\s*\[([A-Z][A-Z0-9-]*)\|([^\]]+)\]\s+\d{2}:\d{2}:\d{2}'
+    r'^\s*\[([A-Z][A-Z0-9-]*)\|([^\]]+)\]\s+(\d{2}:\d{2}:\d{2})'
     r'(?:\s+\[([A-Z]+)\])?\s*(.*)'
 )
 
@@ -81,74 +98,43 @@ def _parse(raw):
     m = _LOG_RE.match(_clean(raw).strip())
     if not m:
         return None
-    return m.group(1), m.group(2), m.group(3) or "", m.group(4)  # node, id, cat, msg
+    return m.group(1), m.group(2), m.group(3), m.group(4) or "", m.group(5)
+    # (node, svc_id, timestamp, category, message)
 
 # ── Shared State ──────────────────────────────────────────────────────────────
+# Each buffer entry is a tuple: (node, svc_id, timestamp, category, message)
 
-_lock   = threading.Lock()
-_bufs   = {k: deque(maxlen=500) for k in _PANEL_COLOR}
-_mstate = {}   # display_id → {status, temp, ts}
-_dstate = {}   # client_id  → {content, ts}
-
-# ── State Parsers ─────────────────────────────────────────────────────────────
-
-_HB_RE   = re.compile(r'(\w+)\s+heartbeat:\s+(\w+)\s*\|\s*Temp:\s*(\d+)')
-_OFF_RE  = re.compile(r'\[OFFLINE\]\s+(\w+)')
-_STAT_RE = re.compile(r'Status:\s+(\w+)\s+[→>]\s+(\w+)')
-_DISP_RE = re.compile(r'Displaying:\s+\[(.+)\]')
-
-def _upd_monitor(msg):
-    m = _HB_RE.search(msg)
-    if m:
-        sid, status, temp = m.group(1), m.group(2), int(m.group(3))
-        with _lock:
-            _mstate.setdefault(sid, {})
-            _mstate[sid].update({"status": status, "temp": temp, "ts": datetime.now().strftime("%H:%M:%S")})
-        return
-    m = _OFF_RE.search(msg)
-    if m:
-        sid = m.group(1)
-        with _lock:
-            _mstate.setdefault(sid, {})
-            _mstate[sid].update({"status": "offline", "ts": datetime.now().strftime("%H:%M:%S")})
-        return
-    m = _STAT_RE.search(msg)
-    if m:
-        sid, status = m.group(1), m.group(2)
-        with _lock:
-            _mstate.setdefault(sid, {})
-            _mstate[sid].update({"status": status, "ts": datetime.now().strftime("%H:%M:%S")})
-
-def _upd_display(cid, msg):
-    m = _DISP_RE.search(msg)
-    if m:
-        with _lock:
-            _dstate[cid] = {"content": _clean(m.group(1)), "ts": datetime.now().strftime("%H:%M:%S")}
+_lock = threading.Lock()
+_bufs = {k: deque(maxlen=500) for k in _PANEL_META}
 
 # ── Message Router ────────────────────────────────────────────────────────────
 
-def _route(node, cid, cat, msg, raw):
-    targets = {"log"}
-
-    if node == "MONITOR":
-        targets.add("monitor");  _upd_monitor(msg)
+def _route(node, svc_id, ts, cat, msg):
+    if node == "DB-LOG":
+        target = "log"
+    elif node == "MONITOR":
+        target = "monitor"
     elif node == "WORKER":
-        targets.add("worker")
+        target = "worker"
     elif node == "DISPLAY":
-        _upd_display(cid, msg)
         if "Displaying:" in msg:
-            targets.add("display")
-    elif node in ("WEATHER", "BIDDER", "SCHEDULER"):
-        targets.add(node.lower())
-
-    if cat == "PUB":   targets.add("pub")
-    elif cat == "SUB": targets.add("sub")
-
+            target = "display"
+        elif cat == "PUB":
+            target = "pub"
+        else:
+            target = "sub"
+    elif node == "WEATHER":
+        target = "weather"
+    elif node == "BIDDER":
+        target = "bidder"
+    elif node == "SCHEDULER":
+        target = "scheduler"
+    else:
+        target = "log"
     with _lock:
-        for t in targets:
-            _bufs[t].append(raw)
+        _bufs[target].append((node, svc_id, ts, cat, msg))
 
-# ── Service Manager ────────────────────────────────────────────────────────────
+# ── Service Manager ───────────────────────────────────────────────────────────
 
 _procs = []
 _stop  = threading.Event()
@@ -163,17 +149,17 @@ def _stream(proc, name):
                 continue
             parsed = _parse(line)
             if parsed:
-                _route(*parsed, line)
+                _route(*parsed)
             else:
                 with _lock:
-                    _bufs["log"].append(line)
+                    _bufs["log"].append(("SYS", name, "", "", _clean(line)))
     except OSError:
         pass
     finally:
         rc = proc.wait()
         if rc not in (0, -15):
             with _lock:
-                _bufs["log"].append(f"[LAUNCHER] {name} exited (code {rc})")
+                _bufs["log"].append(("SYS", "launcher", "", "", f"{name} exited (code {rc})"))
 
 def start_services():
     for svc in SERVICES:
@@ -183,9 +169,9 @@ def start_services():
             _procs.append(p)
             threading.Thread(target=_stream, args=(p, svc["name"]), daemon=True).start()
         except FileNotFoundError:
-            with _lock: _bufs["log"].append(f"[LAUNCHER] not found: {svc['name']}")
+            with _lock: _bufs["log"].append(("SYS", "launcher", "", "", f"not found: {svc['name']}"))
         except OSError as e:
-            with _lock: _bufs["log"].append(f"[LAUNCHER] {svc['name']}: {e}")
+            with _lock: _bufs["log"].append(("SYS", "launcher", "", "", f"{svc['name']}: {e}"))
 
 def stop_services():
     _stop.set()
@@ -197,102 +183,66 @@ def stop_services():
 
 # ── Renderers ─────────────────────────────────────────────────────────────────
 
-def _text(name, n):
-    with _lock: lines = list(_bufs[name])[-n:]
-    out = Text()
-    for line in lines:
-        out.append_text(Text.from_ansi(_sanitize(line)))
-        out.append("\n")
-    return out
+_TEMP_SPLIT = re.compile(r'(\bonline\b|\boffline\b|Temp:\s*\d+\xb0C)', re.IGNORECASE)
+_TEMP_VAL   = re.compile(r'Temp:\s*(\d+)\xb0C')
 
-def _event_text(name, n, sym):
-    """PUB/SUB panels with colored service prefix symbol."""
-    with _lock: lines = list(_bufs[name])[-n:]
-    out = Text()
-    for line in lines:
-        clean = _clean(line).strip()
-        m = _LOG_RE.match(clean)
-        col = _SVC_COLOR.get(m.group(1), "white") if m else "white"
-        out.append(f" {sym} ", style=f"bold {col}")
-        out.append_text(Text.from_ansi(_sanitize(line)))
-        out.append("\n")
-    return out
+def _temp_color(deg):
+    if deg >= 65: return "bright_red"
+    if deg >= 55: return "red"
+    if deg >= 45: return "yellow"
+    return "green"
 
-def _render_monitor(n):
-    with _lock: states = dict(_mstate)
-    if not states:
-        return _text("monitor", n)
-
-    t = Table.grid(padding=(0, 1), expand=True)
-    t.add_column("ID",   style="bold",  min_width=5)
-    t.add_column("Status",              min_width=10)
-    t.add_column("Temp",                min_width=7)
-    t.add_column("Last",  style="dim",  min_width=8)
-
-    for sid in sorted(states):
-        s       = states[sid]
-        status  = s.get("status", "unknown")
-        temp    = s.get("temp")
-        ts      = s.get("ts", "--:--:--")
-
-        if status == "offline":
-            st  = Text("● OFFLINE", style="bold red")
-            ids = "bold red"
-        elif status == "error":
-            st  = Text("● ERROR",   style="bold red")
-            ids = "bold red"
-        elif status in ("online", "rendering"):
-            st  = Text("● ONLINE",  style="bold green")
-            ids = "white"
+def _monitor_msg(t, msg):
+    for chunk in _TEMP_SPLIT.split(msg):
+        low = chunk.lower()
+        if low == "online":
+            t.append(chunk, style="bold bright_green")
+        elif low == "offline":
+            t.append(chunk, style="bold bright_red")
         else:
-            st  = Text(f"● {status.upper()}", style="dim")
-            ids = "dim"
+            m = _TEMP_VAL.match(chunk)
+            if m:
+                deg = int(m.group(1))
+                t.append("Temp: ", style="bright_white")
+                t.append(f"{m.group(1)}°C", style=f"bold {_temp_color(deg)}")
+            else:
+                t.append(chunk, style="bright_white")
 
-        if temp is None:
-            tmp = Text("--", style="dim")
-        elif temp > 60:
-            tmp = Text(f"{temp}°C ▲", style="bold red")
-        elif temp > 50:
-            tmp = Text(f"{temp}°C !", style="bold yellow")
-        else:
-            tmp = Text(f"{temp}°C",   style="green")
-
-        t.add_row(Text(sid, style=ids), st, tmp, Text(ts))
+def _render(panel, entry):
+    node, svc_id, ts, cat, msg = entry
+    t = Text(no_wrap=True, overflow="ellipsis")
+    if ts:
+        t.append(ts + " ", style="grey70")
+    if cat:
+        t.append(f"[{cat}] ", style=f"bold {_CAT.get(cat, 'bright_white')}")
+    if panel == "monitor":
+        _monitor_msg(t, msg)
+    else:
+        t.append(msg, style="bright_white")
     return t
 
-def _render_display():
-    with _lock: states = dict(_dstate)
-    if not states:
-        return Text("Waiting for displays…", style="dim")
-
-    t = Table.grid(padding=(0, 1), expand=True)
-    t.add_column("Screen", style="bold cyan", min_width=6)
-    t.add_column("Content",                   min_width=20)
-    t.add_column("At",     style="dim",        min_width=8)
-
-    for cid in sorted(states):
-        s       = states[cid]
-        content = s.get("content", "?")[:48]
-        ts      = s.get("ts", "--:--:--")
-        short   = cid.replace("screen-", "")
-
-        ct = Text(content, style="bold red" if "EMERGENCY" in content else "white")
-        t.add_row(Text(short, style="bold cyan"), ct, Text(ts))
-    return t
+def _text(panel, n):
+    with _lock:
+        entries = list(_bufs[panel])[-n:]
+    out = Text()
+    for entry in entries:
+        out.append_text(_render(panel, entry))
+        out.append("\n")
+    return out
 
 def _panel(name, content):
-    col = _PANEL_COLOR[name]
-    return Panel(content,
-                 title=f"[bold {col}]{_PANEL_TITLE[name]}[/bold {col}]",
-                 title_align="right",
-                 border_style=col,
-                 padding=(0, 1))
+    label, fname = _PANEL_META[name]
+    col = _TITLE[name]
+    title = f"[bold {col}]{label}[/] [grey70]- {fname}[/grey70]"
+    return Panel(content, title=title, title_align="left",
+                 border_style=_BORDER, padding=(0, 0))
 
 # ── Layout Builders ───────────────────────────────────────────────────────────
 
 def _page1(h):
-    sm = max(3, (h - 4) * 2 // 7 - 2)
-    lg = max(5, (h - 4) * 3 // 7 - 2)
+    # rows split 2:2:3; subtract 2 for top+bottom border per panel
+    sm = max(2, h * 2 // 7 - 2)
+    lg = max(3, h * 3 // 7 - 2)
 
     lay = Layout()
     lay.split_column(Layout(name="r1", ratio=2),
@@ -307,31 +257,26 @@ def _page1(h):
     lay["r3"].split_row(Layout(name="pub"),
                         Layout(name="sub"))
 
-    lay["worker"].update(_panel("worker",    _text("worker",    sm)))
-    lay["monitor"].update(_panel("monitor",  _render_monitor(sm)))
-    lay["display"].update(_panel("display",  _render_display()))
-    lay["weather"].update(_panel("weather",  _text("weather",   sm)))
-    lay["bidder"].update(_panel("bidder",    _text("bidder",    sm)))
-    lay["scheduler"].update(_panel("scheduler", _text("scheduler", sm)))
-    lay["pub"].update(_panel("pub",  _event_text("pub", lg, "⬆")))
-    lay["sub"].update(_panel("sub",  _event_text("sub", lg, "⬇")))
+    for name in ("worker", "monitor", "display", "weather", "bidder", "scheduler"):
+        lay[name].update(_panel(name, _text(name, sm)))
+    for name in ("pub", "sub"):
+        lay[name].update(_panel(name, _text(name, lg)))
     return lay
 
 def _page2(h):
-    return _panel("log", _text("log", max(10, h - 6)))
+    return _panel("log", _text("log", max(10, h - 4)))
 
 # ── Status Bar ────────────────────────────────────────────────────────────────
 
 def _statusbar(page):
-    t = Text()
+    t = Text(no_wrap=True)
     for i, name in enumerate(["DASHBOARD", "LOGS"]):
-        style = "bold black on white" if i == page else "dim"
+        style = "bold black on white" if i == page else "grey70"
         t.append(f"  [{i+1}] {name}  ", style=style)
-    t.append("    ")
-    for key, desc in [("[Tab]","Switch Page"), ("[1][2]","Go To Page"),
-                      ("[Q]","Quit"), ("[Ctrl+C]","Force Kill")]:
-        t.append(key,  style="bold yellow")
-        t.append(f" {desc}   ", style="dim")
+    t.append("   ")
+    for key, desc in [("Tab", "switch"), ("1/2", "jump"), ("Q", "quit"), ("^C", "kill")]:
+        t.append(f" {key} ", style="bold bright_white on grey30")
+        t.append(f" {desc}  ", style="grey70")
     return t
 
 # ── Keyboard ──────────────────────────────────────────────────────────────────
@@ -354,10 +299,14 @@ class _KB:
     def _run(self):
         while not _stop.is_set():
             try:
-                if select.select([sys.stdin], [], [], 0.05)[0]:
-                    self._q.put(sys.stdin.read(1))
-            except Exception:
-                break
+                r, _, _ = select.select([sys.stdin], [], [], 0.1)
+                if r:
+                    data = os.read(self._fd, 32)
+                    for b in data:
+                        if b < 128:
+                            self._q.put(chr(b))
+            except (OSError, ValueError):
+                time.sleep(0.05)
 
     def get(self):
         try: return self._q.get_nowait()
@@ -370,7 +319,7 @@ def main():
     signal.signal(signal.SIGINT,  lambda *_: _stop.set())
     signal.signal(signal.SIGTERM, lambda *_: _stop.set())
 
-    with _lock: _bufs["log"].append("[TUI] Starting services…")
+    with _lock: _bufs["log"].append(("TUI", "launcher", "", "", "Starting services…"))
     start_services()
 
     kb   = _KB()
@@ -381,10 +330,10 @@ def main():
         with Live(console=console, screen=True, refresh_per_second=4) as live:
             while not _stop.is_set():
                 key = kb.get()
-                if   key == '\t':         page = (page + 1) % 2
-                elif key in ('q', 'Q'):   break
-                elif key == '1':          page = 0
-                elif key == '2':          page = 1
+                if   key == '\t':        page = (page + 1) % 2
+                elif key in ('q', 'Q'): break
+                elif key == '1':        page = 0
+                elif key == '2':        page = 1
 
                 h = console.height
                 root = Layout()
