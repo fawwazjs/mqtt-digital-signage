@@ -2,53 +2,58 @@
 // @ts-check
 
 // ── Display registry ───────────────────────────────────────────────────────
-// Simulated fleet — Jakarta tech campus. IDs match tui.py launch config.
+// Simulated fleet — Institut Teknologi Sepuluh Nopember deployment.
 /** @type {readonly import("../types/state").DisplayConfig[]} */
 const DISPLAYS = [
   {
-    id:       "A101",
-    name:     "Grand Atrium A1",
-    zone:     "Lobby",
-    building: "Tower A",
+    id:       "ITS01",
+    name:     "Graha ITS Main Lobby",
+    zone:     "Graha",
+    building: "Graha ITS",
     floor:    1,
-    lat:      -6.2088,
-    lng:      106.8456,
+    lat:      -7.28102,
+    lng:      112.79512,
+    scopeMeters: 85,
   },
   {
-    id:       "A102",
-    name:     "Grand Atrium A2",
-    zone:     "Lobby",
-    building: "Tower A",
+    id:       "ITS02",
+    name:     "Perpustakaan ITS Entrance",
+    zone:     "Library",
+    building: "ITS Library",
     floor:    1,
-    lat:      -6.2091,
-    lng:      106.8460,
+    lat:      -7.28216,
+    lng:      112.79372,
+    scopeMeters: 65,
   },
   {
-    id:       "B201",
-    name:     "Gate Concourse B2",
-    zone:     "Gate",
-    building: "Tower B",
+    id:       "ITS03",
+    name:     "Research Center Corridor",
+    zone:     "Research",
+    building: "Research Center",
     floor:    2,
-    lat:      -6.2097,
-    lng:      106.8468,
+    lat:      -7.27972,
+    lng:      112.79708,
+    scopeMeters: 70,
   },
   {
-    id:       "C301",
-    name:     "Food Court C3",
-    zone:     "FoodCourt",
-    building: "Tower C",
-    floor:    3,
-    lat:      -6.2082,
-    lng:      106.8474,
+    id:       "ITS04",
+    name:     "Kantin Pusat Queue",
+    zone:     "Canteen",
+    building: "Kantin Pusat",
+    floor:    1,
+    lat:      -7.28336,
+    lng:      112.79642,
+    scopeMeters: 75,
   },
 ];
 
 // ── Zone registry ──────────────────────────────────────────────────────────
 /** @type {Readonly<Partial<Record<import("../types/protocol").ZoneId, import("../types/state").ZoneConfig>>>} */
 const ZONES = {
-  Lobby:      { building: "Tower A", label: "Lobby" },
-  Gate:       { building: "Tower B", label: "Gate" },
-  FoodCourt:  { building: "Tower C", label: "Food Court" },
+  Graha:    { building: "Graha ITS", label: "Graha ITS" },
+  Library:  { building: "ITS Library", label: "Library" },
+  Research: { building: "Research Center", label: "Research" },
+  Canteen:  { building: "Kantin Pusat", label: "Canteen" },
 };
 
 // ── Page registry ──────────────────────────────────────────────────────────
@@ -59,7 +64,7 @@ const PAGES = [
   {
     id:     "map",
     label:  "Map View",
-    topics: ["display/+/health", "display/+/status", "alert/#"],
+    topics: ["display/+/health", "display/+/status", "analytics/zone/+/viewership", "alert/#"],
     icon:   `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                <path d="M10 2C7.24 2 5 4.24 5 7c0 4 5 11 5 11s5-7 5-11c0-2.76-2.24-5-5-5z"/>
                <circle cx="10" cy="7" r="1.75"/>
@@ -85,6 +90,17 @@ const PAGES = [
                <line x1="6" y1="7"  x2="14" y2="7"/>
                <line x1="6" y1="10" x2="14" y2="10"/>
                <line x1="6" y1="13" x2="11" y2="13"/>
+             </svg>`,
+  },
+  {
+    id:     "analytics",
+    label:  "Analytics",
+    topics: ["analytics/zone/+/viewership", "display/+/health", "display/+/status", "alert/#", "content/zone/+/schedule", "maintenance/+/alert"],
+    icon:   `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+               <path d="M3 17V3"/><path d="M3 17h14"/>
+               <rect x="6" y="10" width="2.8" height="4"/>
+               <rect x="10" y="6" width="2.8" height="8"/>
+               <rect x="14" y="8" width="2.8" height="6"/>
              </svg>`,
   },
   {

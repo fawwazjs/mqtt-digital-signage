@@ -1,34 +1,37 @@
 /* ── Design Tokens ─────────────────────────────────────────────────────────── */
 :root {
   /* Surface Elevation (dark to light) */
-  --bg-primary:   #0F1117;  /* Level 0: base canvas */
-  --bg-secondary: #161922;  /* Level 1: sidebars, main panels */
-  --bg-tertiary:  #1E2230;  /* Level 2: cards, dropdowns */
-  --bg-elevated:  #252A38;  /* Level 3: modals, toasts */
-  --bg-tooltip:   #2D3345;  /* Level 4: tooltips */
-  --bg-hover:     #252A38;  /* hover state for list items */
+  --bg-primary:   #090B10;  /* Level 0: base canvas */
+  --bg-secondary: #10141D;  /* Level 1: shell */
+  --bg-tertiary:  #171D29;  /* Level 2: panels */
+  --bg-elevated:  #202838;  /* Level 3: popovers */
+  --bg-tooltip:   #273244;  /* Level 4: tooltips */
+  --bg-hover:     #1D2634;  /* hover state */
 
   /* Borders */
-  --border:       #2A2F3C;
-  --border-focus: #2979FF;
+  --border:       #263143;
+  --border-strong:#35445B;
+  --border-focus: #4DA3FF;
 
   /* Text */
-  --text-primary:   #E8EAED;
-  --text-secondary: #9AA0AD;
-  --text-muted:     #5F6574;
-  --text-inverse:   #0F1117;
+  --text-primary:   #F2F5F8;
+  --text-secondary: #AEB7C6;
+  --text-muted:     #707B8D;
+  --text-inverse:   #071015;
 
   /* Semantic status — the ONLY colors with meaning */
-  --status-online:   #00C853;
-  --status-offline:  #FF1744;
-  --status-loading:  #2979FF;
-  --status-degraded: #FF9100;
+  --status-online:   #35D07F;
+  --status-offline:  #FF375F;
+  --status-loading:  #4DA3FF;
+  --status-degraded: #FFB020;
 
   /* Interactive */
-  --accent:        #2979FF;
-  --accent-hover:  #448AFF;
-  --accent-active: #1565C0;
-  --accent-subtle: rgba(41, 121, 255, 0.12);
+  --accent:        #4DA3FF;
+  --accent-hover:  #6CB5FF;
+  --accent-active: #2778CC;
+  --accent-subtle: rgba(77, 163, 255, 0.13);
+  --signal-cyan:   #38D6D1;
+  --signal-violet: #9B8CFF;
 
   /* Elevation shadows */
   --shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.15);
@@ -78,9 +81,51 @@ body {
   font-weight: 400;
   line-height: 1.5;
   color: var(--text-primary);
-  background: var(--bg-primary);
+  background:
+    radial-gradient(circle at 25% 10%, rgba(56, 214, 209, 0.08), transparent 28%),
+    linear-gradient(180deg, #0B0E14 0%, var(--bg-primary) 100%);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+body[data-theme="light"] {
+  --bg-primary: #F4F7FB;
+  --bg-secondary: #FFFFFF;
+  --bg-tertiary: #EEF3F8;
+  --bg-elevated: #E6EDF6;
+  --bg-tooltip: #FFFFFF;
+  --bg-hover: #E8F1FB;
+  --border: #C9D5E4;
+  --border-strong: #AEBED1;
+  --text-primary: #111827;
+  --text-secondary: #405064;
+  --text-muted: #68788C;
+  --text-inverse: #FFFFFF;
+  background: #F4F7FB;
+}
+
+body.high-contrast {
+  --border: #60728C;
+  --border-strong: #8495AE;
+  --text-secondary: #D4DBE7;
+  --text-muted: #AEB8C9;
+}
+
+body[data-theme="light"].high-contrast {
+  --text-secondary: #1F2937;
+  --text-muted: #374151;
+}
+
+body.large-text {
+  font-size: 15px;
+}
+
+body.reduce-motion *,
+body.reduce-motion *::before,
+body.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
 }
 
 /* ── Typography Scale ──────────────────────────────────────────────────────── */

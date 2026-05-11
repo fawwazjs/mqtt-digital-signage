@@ -164,6 +164,14 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
+}
+.cl-thumb video,
+.cl-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 .cl-thumb .ctype-badge { font-size: 9px; }
 .cl-info { flex: 1; min-width: 0; }

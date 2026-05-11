@@ -5,9 +5,9 @@ export type Brand<TPrimitive, TBrand extends string> = TPrimitive & {
 export type ISO8601Timestamp = Brand<string, "ISO8601Timestamp">;
 export type UnixSeconds = Brand<number, "UnixSeconds">;
 
-export type KnownDisplayId = "A101" | "A102" | "B201" | "C301";
-export type KnownZoneId = "Lobby" | "Gate" | "FoodCourt" | "Parking";
-export type KnownBuildingId = "Tower A" | "Tower B" | "Tower C";
+export type KnownDisplayId = "ITS01" | "ITS02" | "ITS03" | "ITS04";
+export type KnownZoneId = "Graha" | "Library" | "Research" | "Canteen";
+export type KnownBuildingId = "Graha ITS" | "ITS Library" | "Research Center" | "Kantin Pusat";
 
 export type DisplayId = KnownDisplayId | Brand<string, "DisplayId">;
 export type ZoneId = KnownZoneId | Brand<string, "ZoneId">;
@@ -61,6 +61,9 @@ export interface ContentSchedulePayload {
   readonly content: string | null;
   readonly timestamp?: UnixSeconds;
   readonly status?: "active" | "removed";
+  readonly media_url?: string;
+  readonly media_type?: ContentMediaType;
+  readonly filename?: string;
 }
 
 export interface ContentPlaylistItem {

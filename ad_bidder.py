@@ -7,7 +7,7 @@ from colorama import Fore, Style
 class AdBidder(MqttNode):
     def __init__(self):
         super().__init__(client_id="ad-bidder-engine", node_type="BIDDER", color=Fore.GREEN)
-        self.zones = ["Lobby", "Gate", "FoodCourt"]
+        self.zones = ["Graha", "Library", "Research", "Canteen"]
         
     def start(self):
         self.connect()
@@ -23,7 +23,7 @@ class AdBidder(MqttNode):
                 brand = random.choice(brands)
                 price = round(random.uniform(10.0, 50.0), 2)
                 
-                topic = f"display/zone/{zone}/content"
+                topic = f"content/zone/{zone}/schedule"
                 payload = json.dumps({
                     "content": f"PREMIUM AD: {brand} (Bid: ${price})",
                     "timestamp": time.time()

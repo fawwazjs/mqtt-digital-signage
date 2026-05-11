@@ -7,7 +7,7 @@ from colorama import Fore, Style
 class WeatherUpdater(MqttNode):
     def __init__(self):
         super().__init__(client_id="weather-service-1", node_type="WEATHER", color=Fore.CYAN)
-        self.zones = ["Lobby", "Gate", "FoodCourt", "Parking"]
+        self.zones = ["Graha", "Library", "Research", "Canteen"]
         
     def start(self):
         self.connect()

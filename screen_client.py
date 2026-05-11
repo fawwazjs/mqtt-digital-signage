@@ -4,6 +4,7 @@ import sys
 import time
 from common import MqttNode
 from colorama import Fore, Style
+from deployment_data import DISPLAYS, ZONE_TYPES
 
 REPORT_INTERVAL_SECONDS = 10
 
@@ -67,7 +68,8 @@ class ScreenClient(MqttNode):
         self.log(f"{Fore.LIGHTBLACK_EX}Health report sent.{Style.RESET_ALL}", category="PUB")
 
     def _send_analytics(self):
-        viewers = random.randint(0, 50)
+        zone_base = {"Graha": 35, "Library": 22, "Research": 18, "Canteen": 48}.get(self.zone_id, 20)
+        viewers = max(0, int(random.gauss(zone_base, 12)))
         peak = "peak" if 7 <= time.localtime().tm_hour < 20 else "off_peak"
         payload = json.dumps({
             "screen_id": self.screen_id,
@@ -78,7 +80,7 @@ class ScreenClient(MqttNode):
             "timestamp": time.time(),
         })
         user_props = [
-            ("zone_type", "lobby"),
+            ("zone_type", ZONE_TYPES.get(self.zone_id, "campus")),
             ("time_bucket", peak),
             ("confidence_score", "0.85"),
         ]
@@ -135,7 +137,7 @@ class ScreenClient(MqttNode):
 
 
 if __name__ == "__main__":
-    s_id = sys.argv[1] if len(sys.argv) > 1 else "A101"
-    z_id = sys.argv[2] if len(sys.argv) > 2 else "Lobby"
+    s_id = sys.argv[1] if len(sys.argv) > 1 else DISPLAYS[0]["id"]
+    z_id = sys.argv[2] if len(sys.argv) > 2 else DISPLAYS[0]["zone"]
     client = ScreenClient(s_id, z_id)
     client.start()

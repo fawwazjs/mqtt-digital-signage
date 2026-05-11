@@ -8,6 +8,7 @@ venv/
 __pycache__/
 *.pyc
 *.pyo
+dashboard/uploads/
 logs_*.txt
 
 # AI agent session file

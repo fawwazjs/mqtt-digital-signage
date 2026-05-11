@@ -11,10 +11,10 @@ GROUPS = {
         {"name": "WORKER-2", "cmd": [sys.executable, "analytics_worker.py", "2"]},
     ],
     "screens": [
-        {"name": "A101", "cmd": [sys.executable, "screen_client.py", "A101", "Lobby"]},
-        {"name": "A102", "cmd": [sys.executable, "screen_client.py", "A102", "Lobby"]},
-        {"name": "B201", "cmd": [sys.executable, "screen_client.py", "B201", "Gate"]},
-        {"name": "C301", "cmd": [sys.executable, "screen_client.py", "C301", "FoodCourt"]},
+        {"name": "ITS01", "cmd": [sys.executable, "screen_client.py", "ITS01", "Graha"]},
+        {"name": "ITS02", "cmd": [sys.executable, "screen_client.py", "ITS02", "Library"]},
+        {"name": "ITS03", "cmd": [sys.executable, "screen_client.py", "ITS03", "Research"]},
+        {"name": "ITS04", "cmd": [sys.executable, "screen_client.py", "ITS04", "Canteen"]},
     ],
     "publishers": [
         {"name": "SCHEDULER", "cmd": [sys.executable, "scheduler.py"]},

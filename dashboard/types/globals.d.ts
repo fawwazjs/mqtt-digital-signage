@@ -31,6 +31,7 @@ declare global {
   function _esc(s: unknown): string;
   function _renderPanel(id: DisplayId): string;
   function _updateBadge(count: number, severity: NotificationSeverity): void;
+  function openSettingsPanel(): void;
 
   interface Window extends DashboardWindow {}
 }

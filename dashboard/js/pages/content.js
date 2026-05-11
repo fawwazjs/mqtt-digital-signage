@@ -26,6 +26,9 @@
  * @property {string} duration
  * @property {string} size
  * @property {string} date
+ * @property {string} [url]
+ * @property {string} [mime]
+ * @property {string} [filename]
  */
 
 /**
@@ -55,14 +58,14 @@ let _toastEl      = null;
 /** @type {ReturnType<typeof setTimeout> | null} */
 let _toastTimer   = null;
 
-// ── Simulated content library (simulation — no backend file storage) ───────────
-/** @type {readonly ContentLibraryItem[]} */
-const _LIB = [
-  { id: "c001", name: "Welcome Lobby",        type: "Video", duration: "30s", size: "45 MB",  date: "2026-04-12" },
-  { id: "c002", name: "Flight Departures",    type: "HTML",  duration: "60s", size: "2 MB",   date: "2026-05-01" },
-  { id: "c003", name: "Food Court Special",   type: "Image", duration: "15s", size: "3 MB",   date: "2026-05-08" },
-  { id: "c004", name: "Emergency Evacuation", type: "Video", duration: "45s", size: "120 MB", date: "2026-04-20" },
-  { id: "c005", name: "Corporate Branding",   type: "Image", duration: "10s", size: "8 MB",   date: "2026-03-15" },
+// ── Content library. Seeded items + real uploaded media from dashboard server.
+/** @type {ContentLibraryItem[]} */
+let _LIB = [
+  { id: "c001", name: "ITS Campus Welcome",        type: "Video", duration: "30s", size: "45 MB",  date: "2026-04-12" },
+  { id: "c002", name: "Library Hours Board",       type: "HTML",  duration: "60s", size: "2 MB",   date: "2026-05-01" },
+  { id: "c003", name: "Kantin Pusat Menu",         type: "Image", duration: "15s", size: "3 MB",   date: "2026-05-08" },
+  { id: "c004", name: "Emergency Evacuation ITS",  type: "Video", duration: "45s", size: "120 MB", date: "2026-04-20" },
+  { id: "c005", name: "Research Expo Promo",       type: "Image", duration: "10s", size: "8 MB",   date: "2026-03-15" },
 ];
 
 /** @type {Readonly<Record<AlertType | "custom", string>>} */
@@ -130,6 +133,7 @@ function _initCM(el) {
 
   _buildSchedulingPanel();
   _buildAlertsPanel();
+  _loadUploadedLibrary();
 }
 
 // ── Scheduling tab ─────────────────────────────────────────────────────────────
@@ -147,6 +151,7 @@ function _buildSchedulingPanel() {
       <div class="lib-header">
         <span class="lib-title">Content Library</span>
         <button class="btn-inline btn-inline-primary" id="lib-upload">Upload New</button>
+        <input id="lib-upload-file" type="file" accept="video/mp4,video/webm,video/ogg,image/png,image/jpeg,image/webp,text/html" hidden>
       </div>
       <div class="lib-search-wrap">
         <input class="grid-search" id="lib-search" placeholder="Search library…" autocomplete="off">
@@ -172,7 +177,14 @@ function _buildSchedulingPanel() {
     _debouncedRenderLibrary();
   });
   panel.querySelector("#lib-upload")?.addEventListener("click", () => {
-    _showToast("Upload: no backend file storage in simulation mode.");
+    const input = document.getElementById("lib-upload-file");
+    if (input instanceof HTMLInputElement) input.click();
+  });
+  panel.querySelector("#lib-upload-file")?.addEventListener("change", e => {
+    const input = /** @type {HTMLInputElement} */ (e.target);
+    const file = input.files?.[0];
+    if (file) _uploadMedia(file);
+    input.value = "";
   });
   panel.querySelector("#ws-new-btn")?.addEventListener("click", () => {
     _showAssign = !_showAssign;
@@ -201,7 +213,7 @@ function _renderLibrary(q) {
 
   el.innerHTML = items.map(c => `
     <div class="cl-item ${_selContent === c.id ? "selected" : ""}" data-cid="${_esc(c.id)}">
-      <div class="cl-thumb"><span class="ctype-badge">${_esc(c.type.slice(0, 3))}</span></div>
+      <div class="cl-thumb">${_thumb(c)}</div>
       <div class="cl-info">
         <div class="cl-name">${_esc(c.name)}</div>
         <div class="cl-meta">
@@ -334,13 +346,18 @@ function _renderAssignForm(show) {
     const retain    = retainEl?.checked ?? true;
     if (!contentId || !target) return;
 
-    const content = _LIB.find(c => c.id === contentId);
+      const content = _LIB.find(c => c.id === contentId);
     const topic   = _assignmentTopic(target);
     if (!topic) {
       _showToast("Invalid assignment target.");
       return;
     }
-    mqttPublish(topic, { content: content?.name || contentId }, qos, retain);
+    mqttPublish(topic, {
+      content: content?.name || contentId,
+      ...(content?.url ? { media_url: content.url } : {}),
+      ...(content?.type ? { media_type: /** @type {import("../../types/protocol").ContentMediaType} */ (content.type.toLowerCase()) } : {}),
+      ...(content?.filename ? { filename: content.filename } : {}),
+    }, qos, retain);
     _showToast(`Published to ${topic} (QoS ${qos})`);
 
     _showAssign = false;
@@ -350,6 +367,49 @@ function _renderAssignForm(show) {
     const btn = document.getElementById("ws-new-btn");
     if (btn) btn.textContent = "New Assignment";
   });
+}
+
+function _loadUploadedLibrary() {
+  fetch("/api/content/library")
+    .then(r => r.ok ? r.json() : [])
+    .then(items => {
+      if (!Array.isArray(items) || !items.length) return;
+      const known = new Set(_LIB.map(x => x.id));
+      _LIB = [...items.filter(x => x && !known.has(x.id)), ..._LIB];
+      _renderLibrary(_pendingLibrarySearch);
+    })
+    .catch(() => {});
+}
+
+/** @param {File} file */
+function _uploadMedia(file) {
+  const data = new FormData();
+  data.append("file", file);
+  _showToast(`Uploading ${file.name}...`);
+  fetch("/api/content/upload", { method: "POST", body: data })
+    .then(async r => {
+      const payload = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(payload.error || "Upload failed.");
+      return /** @type {ContentLibraryItem} */ (payload);
+    })
+    .then(item => {
+      _LIB = [item, ..._LIB.filter(x => x.id !== item.id)];
+      _selContent = item.id;
+      _renderLibrary(_pendingLibrarySearch);
+      _showToast(`Uploaded ${item.name}. Ready to assign.`);
+      if (!_showAssign) {
+        _showAssign = true;
+        _renderAssignForm(true);
+      }
+    })
+    .catch(err => _showToast(err instanceof Error ? err.message : "Upload failed."));
+}
+
+/** @param {ContentLibraryItem} item */
+function _thumb(item) {
+  if (item.type === "Video" && item.url) return `<video src="${_esc(item.url)}" muted playsinline preload="metadata"></video>`;
+  if (item.type === "Image" && item.url) return `<img src="${_esc(item.url)}" alt="">`;
+  return `<span class="ctype-badge">${_esc(item.type.slice(0, 3))}</span>`;
 }
 
 /**

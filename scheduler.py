@@ -2,15 +2,9 @@ import json
 import time
 from common import MqttNode
 from colorama import Fore, Style
+from deployment_data import CAMPAIGNS
 
 SCHEDULE_INTERVAL_SECONDS = 8
-
-CAMPAIGNS = [
-    {"id": "CAMP_MORNING",  "content": "Good Morning! Get 20% off Coffee!", "type": "image", "duration": 15, "zone": "Lobby"},
-    {"id": "CAMP_LUNCH",    "content": "Lunch Special: Burger + Fries!",    "type": "video", "duration": 30, "zone": "Lobby"},
-    {"id": "CAMP_GATE",     "content": "Flight GA-100 Boarding Now!",       "type": "html",  "duration": 60, "display_id": "B201"},
-    {"id": "CAMP_GENERAL",  "content": "Welcome to the Mall! Enjoy your stay!", "type": "image", "duration": 20, "zone": "Lobby"},
-]
 
 
 class ContentScheduler(MqttNode):

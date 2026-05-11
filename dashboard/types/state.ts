@@ -27,7 +27,7 @@ import type {
   ZoneId,
 } from "./protocol";
 
-export type PageId = "map" | "grid" | "content-mgmt" | "notifications" | "audit";
+export type PageId = "map" | "grid" | "content-mgmt" | "analytics" | "notifications" | "audit";
 export type NotificationSeverity = Extract<AlertSeverity, "critical" | "warn" | "info">;
 export type NotificationType =
   | "display_offline"
@@ -46,6 +46,7 @@ export interface DisplayConfig {
   readonly floor: number;
   readonly lat: number;
   readonly lng: number;
+  readonly scopeMeters?: number;
 }
 
 export interface ZoneConfig {
@@ -112,6 +113,7 @@ export interface DashboardState {
   readonly displays: Partial<Record<DisplayId, DisplayState>>;
   readonly alerts: Partial<Record<AlertTopic, AlertState>>;
   readonly analytics: Partial<Record<ZoneId, AnalyticsState>>;
+  readonly displayViewers: Partial<Record<DisplayId, AnalyticsState>>;
   readonly contentSchedules: Partial<Record<ContentZoneScheduleTopic | ContentDisplayOverrideTopic, ContentScheduleState>>;
   readonly auditLog: AuditLogEntry[];
   readonly notifications: DashboardNotification[];
@@ -135,11 +137,14 @@ export interface DashboardWindow {
   mount_grid?: PageMountHandler;
   mount_content_mgmt?: PageMountHandler;
   mount_notifications?: PageMountHandler;
+  mount_analytics?: PageMountHandler;
   mount_audit?: PageMountHandler;
   onMsg_map?: PageMessageHandler;
   onMsg_grid?: PageMessageHandler;
   onMsg_content_mgmt?: PageMessageHandler;
   onMsg_notifications?: PageMessageHandler;
+  onMsg_analytics?: PageMessageHandler;
   onMsg_audit?: PageMessageHandler;
   _auditPendingDisplay?: DisplayId | null;
+  _pendingMapDisplay?: DisplayId | null;
 }
