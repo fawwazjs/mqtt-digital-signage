@@ -1,31 +1,56 @@
 "use strict";
+// @ts-check
+
+/**
+ * @typedef {import("../../types/state").DisplayConfig} DisplayConfig
+ * @typedef {import("../../types/state").DisplayState} DisplayState
+ * @typedef {import("../../types/protocol").AlertTopic} AlertTopic
+ * @typedef {import("../../types/protocol").ContentDisplayOverrideTopic} ContentDisplayOverrideTopic
+ * @typedef {import("../../types/protocol").ContentZoneScheduleTopic} ContentZoneScheduleTopic
+ * @typedef {import("../../types/protocol").DisplayCommandTopic} DisplayCommandTopic
+ * @typedef {import("../../types/protocol").DisplayId} DisplayId
+ * @typedef {import("../../types/protocol").ISO8601Timestamp} ISO8601Timestamp
+ * @typedef {import("../../types/protocol").MaintenanceAlertTopic} MaintenanceAlertTopic
+ * @typedef {import("../../types/protocol").MqttEnvelope} MqttEnvelope
+ * @typedef {"online" | "offline" | "loading" | "degraded" | "emergency"} MapStatus
+ */
 
 // ── CartoDB Dark Matter ────────────────────────────────────────────────────
 const _TILE_URL  = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
 const _TILE_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
 
 // ── Module state ───────────────────────────────────────────────────────────
+/** @type {L.Map | null} */
 let _map     = null;
+/** @type {Partial<Record<DisplayId, L.Marker>>} */
 let _markers = {};     // display id → Leaflet marker
+/** @type {DisplayId | null} */
 let _panelId = null;   // currently open panel
+/** @type {ReturnType<typeof setTimeout> | null} */
 let _ttpShowTimer = null;
+/** @type {ReturnType<typeof setTimeout> | null} */
 let _ttpHideTimer = null;
+/** @type {HTMLElement | null} */
 let _ttp   = null;     // tooltip DOM element
+/** @type {HTMLElement | null} */
 let _panel = null;     // panel DOM element
 
 // ── Lifecycle hooks ────────────────────────────────────────────────────────
 
+/** @param {HTMLElement} el */
 window.mount_map = function(el) {
   if (_map) { _map.invalidateSize(); return; }
   _initMap(el);
 };
 
+/** @param {MqttEnvelope} msg */
 window.onMsg_map = function(msg) {
   if (!_map) return;
   const parts = msg.topic.split("/");
   if (parts[0] === "display") {
-    _updateMarker(parts[1]);
-    _refreshPanel(parts[1]);
+    const id = /** @type {DisplayId} */ (parts[1]);
+    _updateMarker(id);
+    _refreshPanel(id);
   } else if (parts[0] === "alert") {
     _updateAllMarkers();
     if (_panelId) _refreshPanel(_panelId);
@@ -34,6 +59,7 @@ window.onMsg_map = function(msg) {
 
 // ── Map init ───────────────────────────────────────────────────────────────
 
+/** @param {HTMLElement} el */
 function _initMap(el) {
   const root = document.createElement("div");
   root.id = "map-root";
@@ -43,7 +69,7 @@ function _initMap(el) {
 
   L.tileLayer(_TILE_URL, { attribution: _TILE_ATTR, subdomains: "abcd", maxZoom: 19 }).addTo(_map);
 
-  const bounds = L.latLngBounds(DISPLAYS.map(d => [d.lat, d.lng]));
+  const bounds = L.latLngBounds(DISPLAYS.map(d => /** @type {const} */ ([d.lat, d.lng])));
   _map.fitBounds(bounds, { padding: [80, 80] });
 
   // Tooltip overlay — lives inside Leaflet container so container coords align
@@ -58,12 +84,13 @@ function _initMap(el) {
 
   DISPLAYS.forEach(_createMarker);
 
-  _map.on("click", _closePanel);
-  _map.on("zoom",  _onZoom);
+  _map.on("click", () => _closePanel());
+  _map.on("zoom",  () => _onZoom());
 
   document.addEventListener("keydown", _onKeydown);
 }
 
+/** @param {KeyboardEvent} e */
 function _onKeydown(e) {
   if (e.key === "Escape") _closePanel();
 }
@@ -71,8 +98,9 @@ function _onKeydown(e) {
 function _onZoom() {
   const size = _zoomStep();
   Object.keys(_markers).forEach(id => {
-    const m = _markers[id];
-    if (m) m.setIcon(_mkrIcon(_getStatus(id), size));
+    const displayId = /** @type {DisplayId} */ (id);
+    const m = _markers[displayId];
+    if (m) m.setIcon(_mkrIcon(_getStatus(displayId), size));
   });
 }
 
@@ -86,6 +114,10 @@ function _zoomStep() {
   return 14;
 }
 
+/**
+ * @param {MapStatus} status
+ * @param {number} size
+ */
 function _mkrIcon(status, size) {
   return L.divIcon({
     className: "",
@@ -97,19 +129,21 @@ function _mkrIcon(status, size) {
   });
 }
 
+/** @param {DisplayConfig} cfg */
 function _createMarker(cfg) {
+  if (!_map) return;
   const m = L.marker([cfg.lat, cfg.lng], {
     icon: _mkrIcon(_getStatus(cfg.id), _zoomStep()),
     riseOnHover: true,
   }).addTo(_map);
 
   m.on("mouseover", e => {
-    clearTimeout(_ttpShowTimer);
-    clearTimeout(_ttpHideTimer);
+    if (_ttpShowTimer) clearTimeout(_ttpShowTimer);
+    if (_ttpHideTimer) clearTimeout(_ttpHideTimer);
     _ttpShowTimer = setTimeout(() => _showTtp(cfg.id, e.containerPoint), 150);
   });
   m.on("mouseout", () => {
-    clearTimeout(_ttpShowTimer);
+    if (_ttpShowTimer) clearTimeout(_ttpShowTimer);
     _ttpHideTimer = setTimeout(_hideTtp, 100);
   });
   m.on("click", e => {
@@ -120,6 +154,7 @@ function _createMarker(cfg) {
   _markers[cfg.id] = m;
 }
 
+/** @param {DisplayId} id */
 function _updateMarker(id) {
   const m = _markers[id];
   if (!m) return;
@@ -127,15 +162,19 @@ function _updateMarker(id) {
 }
 
 function _updateAllMarkers() {
-  Object.keys(_markers).forEach(_updateMarker);
+  Object.keys(_markers).forEach(id => _updateMarker(/** @type {DisplayId} */ (id)));
 }
 
 // ── Status resolution ──────────────────────────────────────────────────────
 
+/**
+ * @param {DisplayId} id
+ * @returns {MapStatus}
+ */
 function _getStatus(id) {
   const cfg = DISPLAYS.find(d => d.id === id);
   for (const topic of Object.keys(state.alerts)) {
-    if (_alertAffects(topic, cfg)) return "emergency";
+    if (_alertAffects(/** @type {AlertTopic} */ (topic), cfg)) return "emergency";
   }
   const d = state.displays[id];
   if (!d || !d.lastHealthAt) return "loading";
@@ -144,6 +183,10 @@ function _getStatus(id) {
   return "online";
 }
 
+/**
+ * @param {AlertTopic | string} topic
+ * @param {DisplayConfig | undefined} cfg
+ */
 function _alertAffects(topic, cfg) {
   if (!cfg) return false;
   const p = topic.split("/");
@@ -157,7 +200,12 @@ function _alertAffects(topic, cfg) {
 
 // ── Tooltip ────────────────────────────────────────────────────────────────
 
+/**
+ * @param {DisplayId} id
+ * @param {L.Point} pt
+ */
 function _showTtp(id, pt) {
+  if (!_ttp) return;
   _ttp.innerHTML  = _buildTtpHtml(id);
   _ttp.style.left = pt.x + "px";
   _ttp.style.top  = pt.y + "px";
@@ -165,26 +213,30 @@ function _showTtp(id, pt) {
 }
 
 function _hideTtp() {
+  if (!_ttp) return;
   _ttp.classList.remove("visible");
 }
 
+/** @param {DisplayId} id */
 function _buildTtpHtml(id) {
-  const cfg  = DISPLAYS.find(d => d.id === id) || {};
-  const d    = state.displays[id] || {};
+  const cfg  = DISPLAYS.find(d => d.id === id);
+  const d    = state.displays[id];
   const st   = _getStatus(id);
-  const zone = ZONES[cfg.zone] || {};
+  const zone = cfg ? ZONES[cfg.zone] : undefined;
   const labels = { online: "Online", offline: "Offline", loading: "Waiting", degraded: "Degraded", emergency: "Emergency" };
-  return `<div class="ttp-name">${_esc(cfg.name || id)}</div>
+  return `<div class="ttp-name">${_esc(cfg?.name || id)}</div>
           <div class="ttp-id">${_esc(id)}</div>
           <div class="ttp-status"><span class="status-dot ${st}"></span><span>${labels[st] || st}</span></div>
-          <div class="ttp-coords">lat: ${cfg.lat ?? "—"}, lng: ${cfg.lng ?? "—"}</div>
-          <div class="ttp-zone">${_esc(cfg.building || "—")} — ${_esc(zone.label || cfg.zone || "—")}</div>
-          <div class="ttp-uptime">Last heartbeat: ${_timeAgo(d.lastHealthAt)}</div>`;
+          <div class="ttp-coords">lat: ${cfg?.lat ?? "—"}, lng: ${cfg?.lng ?? "—"}</div>
+          <div class="ttp-zone">${_esc(cfg?.building || "—")} — ${_esc(zone?.label || cfg?.zone || "—")}</div>
+          <div class="ttp-uptime">Last heartbeat: ${_timeAgo(d?.lastHealthAt)}</div>`;
 }
 
 // ── Panel ──────────────────────────────────────────────────────────────────
 
+/** @param {DisplayId} id */
 function _openPanel(id) {
+  if (!_panel) return;
   _panelId = id;
   _panel.innerHTML = _renderPanel(id);
   _panel.classList.remove("closing");
@@ -193,32 +245,34 @@ function _openPanel(id) {
 }
 
 function _closePanel() {
-  if (!_panelId) return;
+  if (!_panelId || !_panel) return;
+  const panel = _panel;
   _panelId = null;
-  _panel.classList.add("closing");
-  _panel.addEventListener("transitionend", () => {
-    _panel.classList.remove("open", "closing");
-    _panel.innerHTML = "";
+  panel.classList.add("closing");
+  panel.addEventListener("transitionend", () => {
+    panel.classList.remove("open", "closing");
+    panel.innerHTML = "";
   }, { once: true });
 }
 
+/** @param {DisplayId} id */
 function _refreshPanel(id) {
-  if (_panelId !== id) return;
+  if (_panelId !== id || !_panel) return;
   if (_panel.querySelector(".override-input")) return; // user is typing
   const scrollTop = _panel.querySelector(".panel-scroll")?.scrollTop ?? 0;
   _panel.innerHTML = _renderPanel(id);
   _bindPanelEvents(id);
   const sc = _panel.querySelector(".panel-scroll");
-  if (sc) sc.scrollTop = scrollTop;
+  if (sc instanceof HTMLElement) sc.scrollTop = scrollTop;
 }
 
 // ── Panel render ───────────────────────────────────────────────────────────
 
+/** @param {DisplayId} id */
 function _renderPanel(id) {
-  const cfg  = DISPLAYS.find(d => d.id === id) || {};
-  const d    = state.displays[id] || {};
+  const cfg  = DISPLAYS.find(d => d.id === id);
   const st   = _getStatus(id);
-  const zone = ZONES[cfg.zone] || {};
+  const zone = cfg ? ZONES[cfg.zone] : undefined;
   const labels = { online: "Online", offline: "Offline", loading: "Waiting", degraded: "Degraded", emergency: "Emergency" };
 
   return `
@@ -230,13 +284,13 @@ function _renderPanel(id) {
     <div class="panel-scroll">
 
       <div class="panel-section">
-        <div class="pnl-name">${_esc(cfg.name || id)}</div>
+        <div class="pnl-name">${_esc(cfg?.name || id)}</div>
         <div class="pnl-id">${_esc(id)}</div>
         <div class="pnl-badges"><span class="spill ${st}">${labels[st] || st}</span></div>
         <div class="pnl-breadcrumb">
-          <span>${_esc(cfg.building || "—")}</span> /
-          <span>${_esc(zone.label || cfg.zone || "—")}</span>
-          ${cfg.floor != null ? ` / <span>Floor ${cfg.floor}</span>` : ""}
+          <span>${_esc(cfg?.building || "—")}</span> /
+          <span>${_esc(zone?.label || cfg?.zone || "—")}</span>
+          ${cfg?.floor != null ? ` / <span>Floor ${cfg.floor}</span>` : ""}
         </div>
       </div>
 
@@ -263,30 +317,31 @@ function _renderPanel(id) {
     </div>`;
 }
 
+/** @param {DisplayId} id */
 function _buildPreview(id) {
-  const d   = state.displays[id] || {};
-  const cfg = DISPLAYS.find(x => x.id === id) || {};
+  const d   = state.displays[id];
+  const cfg = DISPLAYS.find(x => x.id === id);
 
-  if (d.status === "offline") {
+  if (d?.status === "offline") {
     return `<div class="pnl-preview pnl-preview--offline">
       <div class="pnl-preview-label">Display Offline</div>
       <div class="pnl-preview-sub">Last seen ${_timeAgo(d.lastStatusAt)}</div>
     </div>`;
   }
 
-  if (!d.currentContent) {
+  if (!d?.currentContent) {
     return `<div class="pnl-preview pnl-preview--loading">
       <div class="pnl-preview-title">Awaiting Content Assignment</div>
     </div>`;
   }
 
   // Pull type/campaign metadata from content schedule user properties
-  const overrideTopic  = `content/display/${id}/override`;
-  const scheduleTopic  = cfg.zone ? `content/zone/${cfg.zone}/schedule` : null;
+  const overrideTopic  = /** @type {ContentDisplayOverrideTopic} */ (`content/display/${id}/override`);
+  const scheduleTopic  = cfg?.zone ? /** @type {ContentZoneScheduleTopic} */ (`content/zone/${cfg.zone}/schedule`) : null;
   const sched          = state.contentSchedules[overrideTopic]
                       || (scheduleTopic ? state.contentSchedules[scheduleTopic] : null)
-                      || {};
-  const up             = sched.user_properties || {};
+                      || null;
+  const up             = sched?.user_properties || {};
   const contentType    = up.content_type || "";
   const campaignId     = up.campaign_id  || "";
   const duration       = up.duration     || "";
@@ -301,9 +356,10 @@ function _buildPreview(id) {
   </div>`;
 }
 
+/** @param {DisplayId} id */
 function _buildHealth(id) {
-  const d = state.displays[id] || {};
-  if (!d.lastHealthAt) return `<p class="t-small">No health data yet.</p>`;
+  const d = state.displays[id];
+  if (!d?.lastHealthAt) return `<p class="t-small">No health data yet.</p>`;
 
   const temp    = d.temp   != null ? d.temp   : null;
   const tempCls = temp != null ? (temp >= 65 ? "crit" : temp >= 50 ? "warn" : "") : "";
@@ -328,6 +384,7 @@ function _buildHealth(id) {
   </div>`;
 }
 
+/** @param {DisplayId} id */
 function _buildEvents(id) {
   const cfg  = DISPLAYS.find(d => d.id === id);
   const zone = cfg?.zone;
@@ -349,11 +406,11 @@ function _buildEvents(id) {
   return events.map(e => {
     const p = e.topic.split("/");
     let label;
-    if (p[2] === "status")                                 label = `Status → ${_esc(e.payload.status || "?")}`;
-    else if (p[2] === "health")                            label = `Heartbeat — ${_esc(e.payload.status || "online")}`;
-    else if (p[0] === "alert")                             label = `Emergency: ${_esc(e.payload.message || "Alert")}`;
-    else if (p[0] === "content")                           label = `Content → ${_esc(e.payload.content || "?")}`;
-    else if (p[0] === "maintenance")                       label = `Maintenance: ${_esc(e.payload.reason || "flagged")}`;
+    if (p[2] === "status")                                 label = `Status → ${_esc(_payloadField(e.payload, "status", "?"))}`;
+    else if (p[2] === "health")                            label = `Heartbeat — ${_esc(_payloadField(e.payload, "status", "online"))}`;
+    else if (p[0] === "alert")                             label = `Emergency: ${_esc(_payloadField(e.payload, "message", "Alert"))}`;
+    else if (p[0] === "content")                           label = `Content → ${_esc(_payloadField(e.payload, "content", "?"))}`;
+    else if (p[0] === "maintenance")                       label = `Maintenance: ${_esc(_payloadField(e.payload, "reason", "flagged"))}`;
     else                                                   label = _esc(e.topic);
     return `<div class="event-item">
       <span class="event-ts">${_fmtTs(e.timestamp)}</span>
@@ -362,6 +419,7 @@ function _buildEvents(id) {
   }).join("") + auditLink;
 }
 
+/** @param {DisplayId} id */
 function _buildActions(id) {
   const offline = (state.displays[id] || {}).status === "offline";
   const dis     = offline ? " disabled" : "";
@@ -376,9 +434,13 @@ function _buildActions(id) {
 
 // ── Panel event binding ────────────────────────────────────────────────────
 
+/** @param {DisplayId} id */
 function _bindPanelEvents(id) {
-  const $  = s => _panel.querySelector(s);
-  const $$ = s => _panel.querySelectorAll(s);
+  if (!_panel) return;
+  /** @param {string} s */
+  const $  = s => _panel?.querySelector(s) || null;
+  /** @param {string} s */
+  const $$ = s => _panel?.querySelectorAll(s) || document.querySelectorAll("__never__");
 
   $("#pnl-close")?.addEventListener("click", _closePanel);
 
@@ -394,13 +456,14 @@ function _bindPanelEvents(id) {
       </div>
     </div>`;
     $("#ov-submit")?.addEventListener("click", () => {
-      const val = ($("#ov-input")?.value || "").trim();
+      const input = /** @type {HTMLInputElement | null} */ ($("#ov-input"));
+      const val = (input?.value || "").trim();
       if (!val) return;
-      mqttPublish(`content/display/${id}/override`, { content: val }, 1, true);
+      mqttPublish(/** @type {ContentDisplayOverrideTopic} */ (`content/display/${id}/override`), { content: val }, 1, true);
       wrap.innerHTML = "";
     });
     $("#ov-cancel")?.addEventListener("click", () => { wrap.innerHTML = ""; });
-    $("#ov-input")?.focus();
+    /** @type {HTMLInputElement | null} */ ($("#ov-input"))?.focus();
   });
 
   // Restart — inline confirm
@@ -413,7 +476,7 @@ function _bindPanelEvents(id) {
       <button class="btn-ghost" id="rs-no">Cancel</button>
     </div>`;
     $("#rs-yes")?.addEventListener("click", () => {
-      mqttPublish(`display/${id}/command`, { command: "restart" }, 1, false);
+      mqttPublish(/** @type {DisplayCommandTopic} */ (`display/${id}/command`), { command: "restart" }, 1, false);
       wrap.innerHTML = "";
     });
     $("#rs-no")?.addEventListener("click", () => { wrap.innerHTML = ""; });
@@ -421,15 +484,16 @@ function _bindPanelEvents(id) {
 
   // Mark for maintenance
   $("#act-maint")?.addEventListener("click", () => {
-    mqttPublish(`maintenance/${id}/alert`, {
-      display_id: id, reason: "operator_flagged", timestamp: new Date().toISOString(),
+    mqttPublish(/** @type {MaintenanceAlertTopic} */ (`maintenance/${id}/alert`), {
+      display_id: id, reason: "operator_flagged", timestamp: /** @type {import("../../types/protocol").UnixSeconds} */ (Date.now() / 1000),
     }, 1, false);
   });
 
-  // Audit log link
+  // Audit log link — passes display ID as pre-filter to audit page
   $$("[data-audit-id]").forEach(a => {
     a.addEventListener("click", e => {
       e.preventDefault();
+      window._auditPendingDisplay = /** @type {DisplayId} */ (a.getAttribute("data-audit-id"));
       navigateTo("audit");
     });
   });
@@ -437,12 +501,25 @@ function _bindPanelEvents(id) {
 
 // ── Utilities ──────────────────────────────────────────────────────────────
 
+/** @param {unknown} s */
 function _esc(s) {
   return String(s ?? "")
     .replace(/&/g, "&amp;").replace(/</g, "&lt;")
     .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
+/**
+ * @param {unknown} payload
+ * @param {string} key
+ * @param {string} fallback
+ */
+function _payloadField(payload, key, fallback) {
+  if (payload === null || Object(payload) !== payload || Array.isArray(payload)) return fallback;
+  const value = /** @type {Record<string, unknown>} */ (payload)[key];
+  return value == null ? fallback : String(value);
+}
+
+/** @param {ISO8601Timestamp | undefined} ts */
 function _timeAgo(ts) {
   if (!ts) return "—";
   const s = Math.max(0, Math.floor((Date.now() - new Date(ts).getTime()) / 1000));
@@ -452,6 +529,7 @@ function _timeAgo(ts) {
   return `${Math.floor(s / 86400)}d ago`;
 }
 
+/** @param {ISO8601Timestamp | undefined} ts */
 function _fmtTs(ts) {
   if (!ts) return "—";
   return new Date(ts).toLocaleTimeString([], {

@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true
+  },
+  "include": [
+    "types/**/*.ts",
+    "types/**/*.d.ts",
+    "js/pages/audit.js"
+  ],
+  "exclude": []
+}

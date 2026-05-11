@@ -1,17 +1,22 @@
 /* ── Design Tokens ─────────────────────────────────────────────────────────── */
 :root {
-  /* Backgrounds */
-  --bg-primary:   #0F1117;
-  --bg-secondary: #161922;
-  --bg-tertiary:  #1E2230;
+  /* Surface Elevation (dark to light) */
+  --bg-primary:   #0F1117;  /* Level 0: base canvas */
+  --bg-secondary: #161922;  /* Level 1: sidebars, main panels */
+  --bg-tertiary:  #1E2230;  /* Level 2: cards, dropdowns */
+  --bg-elevated:  #252A38;  /* Level 3: modals, toasts */
+  --bg-tooltip:   #2D3345;  /* Level 4: tooltips */
+  --bg-hover:     #252A38;  /* hover state for list items */
 
   /* Borders */
-  --border: #2A2F3C;
+  --border:       #2A2F3C;
+  --border-focus: #2979FF;
 
   /* Text */
   --text-primary:   #E8EAED;
   --text-secondary: #9AA0AD;
   --text-muted:     #5F6574;
+  --text-inverse:   #0F1117;
 
   /* Semantic status — the ONLY colors with meaning */
   --status-online:   #00C853;
@@ -23,10 +28,36 @@
   --accent:        #2979FF;
   --accent-hover:  #448AFF;
   --accent-active: #1565C0;
+  --accent-subtle: rgba(41, 121, 255, 0.12);
+
+  /* Elevation shadows */
+  --shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.15);
+  --shadow-md:  0 4px 6px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.15);
+  --shadow-lg:  0 10px 20px rgba(0, 0, 0, 0.3), 0 3px 6px rgba(0, 0, 0, 0.15);
+  --shadow-xl:  0 15px 40px rgba(0, 0, 0, 0.4), 0 5px 10px rgba(0, 0, 0, 0.2);
 
   /* Typography */
   --font-ui:   'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+
+  /* Spacing scale */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  /* Transitions */
+  --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in:  cubic-bezier(0.4, 0, 1, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
 }
 
 /* ── Reset ─────────────────────────────────────────────────────────────────── */
@@ -119,4 +150,79 @@ a:hover { color: var(--accent-hover); }
 @keyframes emergency-ring {
   0%   { transform: scale(1); opacity: 1; }
   100% { transform: scale(2); opacity: 0; }
+}
+
+/* ── Empty states ─────────────────────────────────────────────────────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl) var(--space-lg);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.empty-state-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: var(--space-md);
+  opacity: 0.4;
+}
+
+.empty-state-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-xs);
+}
+
+.empty-state-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  max-width: 280px;
+  line-height: 1.5;
+}
+
+/* ── Loading indicator ────────────────────────────────────────────────────── */
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Card base ────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-header {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.card-body {
+  padding: var(--space-lg);
+}
+
+/* ── Reduced motion ───────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

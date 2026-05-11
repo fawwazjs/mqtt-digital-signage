@@ -1,0 +1,212 @@
+/* ── Notif root ──────────────────────────────────────────────────────────────── */
+#nf-root {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Controls bar ────────────────────────────────────────────────────────────── */
+.nf-controls {
+  flex-shrink: 0;
+  height: 52px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 0 var(--space-md);
+}
+
+.nf-controls-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nf-sound-btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 150ms, border-color 150ms;
+}
+.nf-sound-btn:hover          { color: var(--text-secondary); border-color: var(--text-muted); }
+.nf-sound-btn.unmuted        { color: var(--accent); border-color: rgba(41,121,255,0.3); }
+.nf-sound-btn svg            { width: 14px; height: 14px; }
+
+/* ── Feed area ───────────────────────────────────────────────────────────────── */
+.nf-feed-wrap {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+}
+
+#nf-feed {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+}
+
+/* "New notifications" floating pill */
+#nf-new-pill {
+  display: none;
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 14px;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(41,121,255,0.4);
+  white-space: nowrap;
+  transition: box-shadow 150ms;
+  user-select: none;
+}
+#nf-new-pill:hover { box-shadow: 0 4px 16px rgba(41,121,255,0.5); }
+
+/* Empty state */
+.nf-empty {
+  padding: 64px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* ── Notification row ────────────────────────────────────────────────────────── */
+.nf-item {
+  display: flex;
+  flex-direction: column;
+  border-left: 4px solid transparent;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 150ms;
+}
+.nf-item:hover     { background: rgba(255, 255, 255, 0.02); }
+.nf-item.unread    { background: rgba(255, 255, 255, 0.015); }
+
+.nf-item.sev-critical { border-left-color: var(--status-offline); }
+.nf-item.sev-warn     { border-left-color: var(--status-degraded); }
+.nf-item.sev-info     { border-left-color: var(--status-online); }
+
+/* Row main content — always visible */
+.nf-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 11px 20px 11px 14px;
+}
+
+.nf-ts {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  width: 76px;
+  padding-top: 1px;
+  line-height: 1.4;
+}
+
+.nf-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.nf-icon svg { width: 100%; height: 100%; }
+
+/* Severity icon colors */
+.nf-item.sev-critical .nf-icon { color: var(--status-offline); }
+.nf-item.sev-warn     .nf-icon { color: var(--status-degraded); }
+.nf-item.sev-info     .nf-icon { color: var(--status-online); }
+
+.nf-body { flex: 1; min-width: 0; }
+.nf-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nf-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nf-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--status-offline);
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+.nf-item.sev-warn .nf-dot { background: var(--status-degraded); }
+.nf-item.sev-info .nf-dot { background: var(--status-online); }
+
+/* Expanded details — max-height transition */
+.nf-expand {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 200ms ease;
+}
+.nf-item.expanded .nf-expand { max-height: 140px; }
+
+.nf-expand-inner {
+  padding: 0 20px 12px calc(14px + 4px + 76px + 12px + 18px + 12px); /* align under body */
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.nf-expand-row {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+}
+.nf-expand-key   { color: var(--text-muted); font-family: var(--font-mono); flex-shrink: 0; width: 60px; }
+.nf-expand-val   { color: var(--text-secondary); font-family: var(--font-mono); word-break: break-all; }
+.nf-link-btn {
+  display: inline-block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--accent);
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-ui);
+  text-align: left;
+  transition: color 150ms;
+}
+.nf-link-btn:hover { color: var(--accent-hover); }
+
+/* Chevron indicator */
+.nf-chevron {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  margin-top: 2px;
+  transition: transform 200ms ease;
+}
+.nf-item.expanded .nf-chevron { transform: rotate(90deg); }

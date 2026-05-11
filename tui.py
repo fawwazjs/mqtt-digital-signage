@@ -37,6 +37,7 @@ SERVICES = [
     {"name": "weather",     "cmd": [_PY, "weather_updater.py"]},
     {"name": "bidder",      "cmd": [_PY, "ad_bidder.py"]},
     {"name": "db-logger",   "cmd": [_PY, "db_logger.py"]},
+    {"name": "dashboard",   "cmd": [_PY, "dashboard_server.py"]},
 ]
 
 # ── Color Scheme ──────────────────────────────────────────────────────────────
@@ -78,7 +79,7 @@ _PANEL_META = {
     "scheduler": ("CONTENT SCHEDULER", "scheduler.py"),
     "pub":       ("PUBLISH EVENTS",    "screen_client.py"),
     "sub":       ("SUBSCRIBE EVENTS",  "screen_client.py"),
-    "log":       ("SYSTEM LOG",        "db_logger.py"),
+    "log":       ("SYSTEM LOG",        "db_logger.py · dashboard_server.py"),
 }
 
 # ── ANSI Utilities ────────────────────────────────────────────────────────────
@@ -273,6 +274,8 @@ def _statusbar(page):
     for i, name in enumerate(["DASHBOARD", "LOGS"]):
         style = "bold black on white" if i == page else "grey70"
         t.append(f"  [{i+1}] {name}  ", style=style)
+    t.append("   ")
+    t.append("http://localhost:8080", style="bright_cyan")
     t.append("   ")
     for key, desc in [("Tab", "switch"), ("1/2", "jump"), ("Q", "quit"), ("^C", "kill")]:
         t.append(f" {key} ", style="bold bright_white on grey30")

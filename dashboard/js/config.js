@@ -1,7 +1,9 @@
 "use strict";
+// @ts-check
 
 // ── Display registry ───────────────────────────────────────────────────────
 // Simulated fleet — Jakarta tech campus. IDs match tui.py launch config.
+/** @type {readonly import("../types/state").DisplayConfig[]} */
 const DISPLAYS = [
   {
     id:       "A101",
@@ -42,6 +44,7 @@ const DISPLAYS = [
 ];
 
 // ── Zone registry ──────────────────────────────────────────────────────────
+/** @type {Readonly<Partial<Record<import("../types/protocol").ZoneId, import("../types/state").ZoneConfig>>>} */
 const ZONES = {
   Lobby:      { building: "Tower A", label: "Lobby" },
   Gate:       { building: "Tower B", label: "Gate" },
@@ -51,6 +54,7 @@ const ZONES = {
 // ── Page registry ──────────────────────────────────────────────────────────
 // Add entries here to extend sidebar navigation. No router code changes needed.
 // topics: MQTT topic patterns this page processes (used for future per-page filtering).
+/** @type {readonly import("../types/state").PageConfig[]} */
 const PAGES = [
   {
     id:     "map",
@@ -107,6 +111,7 @@ const PAGES = [
 ];
 
 // ── Alert type definitions ─────────────────────────────────────────────────
+/** @type {readonly import("../types/state").AlertTypeConfig[]} */
 const ALERT_TYPES = [
   { id: "fire",      label: "Fire / Evacuation",      defaultMsg: "FIRE ALARM — Evacuate immediately via nearest exit." },
   { id: "weather",   label: "Severe Weather",          defaultMsg: "SEVERE WEATHER WARNING — Seek shelter immediately." },

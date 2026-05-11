@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true
+  },
+  "include": [
+    "types/protocol.ts",
+    "types/state.ts",
+    "js/config.js"
+  ],
+  "exclude": []
+}

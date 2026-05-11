@@ -23,6 +23,7 @@
   padding: 0 20px;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
   z-index: 10;
   flex-shrink: 0;
 }
@@ -31,46 +32,63 @@
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
-  letter-spacing: 0.01em;
+  letter-spacing: -0.01em;
 }
 
 #topbar-right {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
 }
 
 #conn-status {
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 5px 12px;
+  border-radius: var(--radius-md);
   font-size: 12px;
   font-weight: 500;
   color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+#conn-status.connected {
+  border-color: rgba(0, 200, 83, 0.25);
 }
 
 #conn-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: var(--status-degraded); /* amber = connecting default */
+  background: var(--status-degraded);
   flex-shrink: 0;
-  transition: background 300ms ease;
+  transition: background 300ms var(--ease-out), box-shadow 300ms var(--ease-out);
 }
 
-#conn-status.connected    #conn-dot { background: var(--status-online); }
+#conn-status.connected #conn-dot {
+  background: var(--status-online);
+  box-shadow: 0 0 6px rgba(0, 200, 83, 0.5);
+}
 #conn-status.reconnecting #conn-dot {
   background: var(--status-loading);
   animation: pulse-opacity 1s ease-in-out infinite;
 }
-#conn-status.disconnected #conn-dot { background: var(--status-offline); }
+#conn-status.disconnected #conn-dot {
+  background: var(--status-offline);
+  box-shadow: 0 0 6px rgba(255, 23, 68, 0.4);
+}
 
 #topbar-clock {
   font-family: var(--font-mono);
   font-size: 12px;
+  font-variant-numeric: tabular-nums;
   color: var(--text-muted);
   min-width: 64px;
   text-align: right;
+  letter-spacing: 0.02em;
 }
 
 /* ── Sidebar ───────────────────────────────────────────────────────────────── */
@@ -80,6 +98,7 @@
   flex-direction: column;
   background: var(--bg-secondary);
   border-right: 1px solid var(--border);
+  box-shadow: 1px 0 0 rgba(0, 0, 0, 0.05);
   overflow: hidden;
   z-index: 20;
 }
@@ -88,7 +107,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 8px 0;
+  padding: 12px 8px;
   gap: 2px;
   overflow: hidden;
 }
@@ -97,27 +116,29 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 18px;
+  padding: 10px;
   border: none;
   background: none;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   text-align: left;
   white-space: nowrap;
   overflow: hidden;
   cursor: pointer;
   width: 100%;
+  border-radius: var(--radius-md);
   position: relative;
-  transition: color 150ms ease, background 150ms ease;
+  transition: color var(--duration-fast) var(--ease-out),
+              background var(--duration-fast) var(--ease-out);
 }
 
 .nav-item:hover {
   background: var(--bg-tertiary);
-  color: var(--text-primary);
+  color: var(--text-secondary);
 }
 
 .nav-item.active {
-  color: var(--accent);
-  background: rgba(41, 121, 255, 0.08);
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
 }
 
 /* Active left-edge indicator */
@@ -125,10 +146,10 @@
   content: '';
   position: absolute;
   left: 0;
-  top: 6px;
-  bottom: 6px;
-  width: 2px;
-  border-radius: 0 1px 1px 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
   background: var(--accent);
 }
 
@@ -136,6 +157,13 @@
   width: 18px;
   height: 18px;
   flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.nav-item:hover svg,
+.nav-item.active svg {
+  opacity: 1;
 }
 
 .nav-label {
@@ -143,16 +171,17 @@
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
-  /* Hidden when collapsed — revealed on expand */
   max-width: 0;
   opacity: 0;
-  transition: max-width 200ms ease, opacity 100ms ease;
+  transition: max-width var(--duration-normal) var(--ease-out),
+              opacity var(--duration-fast) var(--ease-out);
 }
 
 #app.sidebar-expanded .nav-label {
   max-width: 160px;
   opacity: 1;
-  transition: max-width 200ms ease, opacity 150ms ease 80ms;
+  transition: max-width var(--duration-normal) var(--ease-out),
+              opacity var(--duration-fast) var(--ease-out) 80ms;
 }
 
 /* Notification badge */
@@ -171,12 +200,15 @@
   background: var(--status-offline);
   color: #fff;
   flex-shrink: 0;
-  /* Hidden by default */
+  box-shadow: 0 0 8px rgba(255, 23, 68, 0.4);
   transform: scale(0);
-  transition: transform 150ms ease;
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 
-.nav-badge.warn { background: var(--status-degraded); }
+.nav-badge.warn {
+  background: var(--status-degraded);
+  box-shadow: 0 0 8px rgba(255, 145, 0, 0.4);
+}
 .nav-badge.show { transform: scale(1); }
 
 /* Sidebar toggle button */
@@ -185,18 +217,23 @@
   align-items: center;
   justify-content: center;
   height: 44px;
-  border-top: 1px solid var(--border);
+  margin: 0 8px 8px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
   background: none;
-  border-left: none;
-  border-right: none;
-  border-bottom: none;
   color: var(--text-muted);
   cursor: pointer;
   flex-shrink: 0;
-  transition: color 150ms ease;
+  transition: color var(--duration-fast) var(--ease-out),
+              background var(--duration-fast) var(--ease-out),
+              border-color var(--duration-fast) var(--ease-out);
 }
 
-#sidebar-toggle:hover { color: var(--text-secondary); }
+#sidebar-toggle:hover {
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  border-color: var(--border);
+}
 
 /* ── Content Area ──────────────────────────────────────────────────────────── */
 #content {
@@ -217,6 +254,106 @@
   display: block;
 }
 
+/* ── Alert Ribbon ──────────────────────────────────────────────────────────── */
+#alert-ribbon {
+  position: fixed;
+  top: 48px;
+  left: var(--sidebar-w, 56px);
+  right: 0;
+  height: 44px;
+  background: var(--status-offline);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px 0 20px;
+  z-index: 50;
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 250ms ease-out, opacity 200ms ease-out, left 200ms ease;
+}
+
+#alert-ribbon.show {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ribbon-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.ribbon-icon {
+  flex-shrink: 0;
+  color: #fff;
+}
+
+#ribbon-message {
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#ribbon-scope {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  padding: 2px 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.ribbon-count {
+  flex-shrink: 0;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+}
+
+.ribbon-count:empty {
+  display: none;
+}
+
+.ribbon-dismiss {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.15);
+  border: none;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  margin-left: 12px;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.ribbon-dismiss:hover {
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+}
+
 /* ── Responsive ────────────────────────────────────────────────────────────── */
 @media (max-width: 1023px) {
   #app,
@@ -232,4 +369,5 @@
   #sidebar { display: none; }
   #topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
   #content { position: fixed; top: 48px; left: 0; right: 0; bottom: 0; }
+  #alert-ribbon { left: 0; }
 }

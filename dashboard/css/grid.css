@@ -10,13 +10,14 @@
 /* ── Controls bar ────────────────────────────────────────────────────────────── */
 .grid-controls {
   flex-shrink: 0;
-  height: 48px;
+  height: 52px;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 12px;
+  gap: var(--space-sm);
+  padding: 0 var(--space-md);
 }
 
 .grid-search {
@@ -104,9 +105,16 @@
   cursor: pointer;
   overflow: hidden;
   border: 2px solid transparent;
-  transition: border-color 300ms ease;
+  border-radius: var(--radius-sm);
+  transition: border-color 300ms var(--ease-out),
+              transform var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
 }
-.gc:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.gc:hover {
+  transform: scale(1.01);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+.gc:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .gc--offline   { border-color: var(--status-offline); }
 .gc--degraded  { border-color: var(--status-degraded); }
@@ -269,8 +277,8 @@
 .grid-modal-bg {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.82);
-  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
 }
 
 .grid-modal-inner {
@@ -279,7 +287,8 @@
   width: min(90vw, 960px);
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
   overflow: hidden;
 }
 
