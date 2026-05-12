@@ -117,8 +117,14 @@ body[data-theme="light"].high-contrast {
 }
 
 body.large-text {
-  font-size: 15px;
+  font-size: 16px;
 }
+body.large-text .t-page { font-size: 28px; }
+body.large-text .t-section { font-size: 20px; }
+body.large-text .t-card { font-size: 17px; }
+body.large-text .t-body, body.large-text button { font-size: 16px; }
+body.large-text .t-small, body.large-text .t-label, body.large-text input, body.large-text select { font-size: 14px; }
+body.large-text .t-ts { font-size: 13px; }
 
 body.reduce-motion *,
 body.reduce-motion *::before,

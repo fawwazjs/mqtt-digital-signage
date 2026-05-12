@@ -349,12 +349,18 @@ function _propagateContent(parts, payload) {
       const display = state.displays[d.id];
       if (display) {
         display.currentContent = payload.content;
+        display.mediaUrl = payload.media_url;
+        display.mediaType = payload.media_type;
       }
     });
   } else if (parts[1] === "display") {
     const id = /** @type {DisplayId} */ (parts[2]);
     const display = state.displays[id];
-    if (display) display.currentContent = payload.content;
+    if (display) {
+      display.currentContent = payload.content;
+      display.mediaUrl = payload.media_url;
+      display.mediaType = payload.media_type;
+    }
   }
 }
 
