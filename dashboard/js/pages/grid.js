@@ -489,7 +489,13 @@ function _openModal(id) {
   const info    = _gModal.querySelector("#gm-info");
   if (preview) {
     preview.className = `grid-modal-preview ${cls}`;
-    preview.innerHTML = `<div class="grid-modal-label">${_esc(label)}</div>`;
+    if (d.mediaUrl && d.mediaType === "video") {
+      preview.innerHTML = `<video src="${_esc(d.mediaUrl)}" autoplay loop muted style="width:100%;height:100%;object-fit:cover;"></video><div class="grid-modal-label" style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.5);">${_esc(label)}</div>`;
+    } else if (d.mediaUrl && d.mediaType === "image") {
+      preview.innerHTML = `<img src="${_esc(d.mediaUrl)}" style="width:100%;height:100%;object-fit:cover;"><div class="grid-modal-label" style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.5);">${_esc(label)}</div>`;
+    } else {
+      preview.innerHTML = `<div class="grid-modal-label">${_esc(label)}</div>`;
+    }
   }
   if (info) {
     info.innerHTML = `

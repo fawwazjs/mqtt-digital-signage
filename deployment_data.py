@@ -1,10 +1,10 @@
 """Shared demo deployment data for the ITS signage fleet."""
 
 DISPLAYS = [
-    {"id": "ITS01", "name": "Graha ITS Main Lobby", "zone": "Graha", "building": "Graha ITS", "floor": 1, "lat": -7.28102, "lng": 112.79512},
-    {"id": "ITS02", "name": "Perpustakaan ITS Entrance", "zone": "Library", "building": "ITS Library", "floor": 1, "lat": -7.28216, "lng": 112.79372},
-    {"id": "ITS03", "name": "Research Center Corridor", "zone": "Research", "building": "Research Center", "floor": 2, "lat": -7.27972, "lng": 112.79708},
-    {"id": "ITS04", "name": "Kantin Pusat Queue", "zone": "Canteen", "building": "Kantin Pusat", "floor": 1, "lat": -7.28336, "lng": 112.79642},
+    {"id": "ITS01", "name": "Graha ITS Main Lobby", "zone": "Graha", "building": "Graha ITS", "floor": 1, "lat": -7.277172, "lng": 112.791226},
+    {"id": "ITS02", "name": "Perpustakaan ITS Entrance", "zone": "Library", "building": "ITS Library", "floor": 1, "lat": -7.281723, "lng": 112.795382},
+    {"id": "ITS03", "name": "Research Center Corridor", "zone": "Research", "building": "Research Center", "floor": 2, "lat": -7.281419, "lng": 112.797629},
+    {"id": "ITS04", "name": "Kantin Pusat Queue", "zone": "Canteen", "building": "Kantin Pusat", "floor": 1, "lat": -7.284078, "lng": 112.793922},
 ]
 
 ZONES = {

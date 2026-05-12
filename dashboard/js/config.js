@@ -11,8 +11,8 @@ const DISPLAYS = [
     zone:     "Graha",
     building: "Graha ITS",
     floor:    1,
-    lat:      -7.28102,
-    lng:      112.79512,
+    lat:      -7.277172,
+    lng:      112.791226,
     scopeMeters: 85,
   },
   {
@@ -21,8 +21,8 @@ const DISPLAYS = [
     zone:     "Library",
     building: "ITS Library",
     floor:    1,
-    lat:      -7.28216,
-    lng:      112.79372,
+    lat:      -7.281723,
+    lng:      112.795382,
     scopeMeters: 65,
   },
   {
@@ -31,8 +31,8 @@ const DISPLAYS = [
     zone:     "Research",
     building: "Research Center",
     floor:    2,
-    lat:      -7.27972,
-    lng:      112.79708,
+    lat:      -7.281419,
+    lng:      112.797629,
     scopeMeters: 70,
   },
   {
@@ -41,8 +41,8 @@ const DISPLAYS = [
     zone:     "Canteen",
     building: "Kantin Pusat",
     floor:    1,
-    lat:      -7.28336,
-    lng:      112.79642,
+    lat:      -7.284078,
+    lng:      112.793922,
     scopeMeters: 75,
   },
 ];
@@ -103,17 +103,7 @@ const PAGES = [
                <rect x="14" y="8" width="2.8" height="6"/>
              </svg>`,
   },
-  {
-    id:          "notifications",
-    label:       "Notifications",
-    badge:       true,
-    hideFromNav: true,
-    topics:      ["display/+/status", "alert/#", "maintenance/+/alert"],
-    icon:   `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-               <path d="M10 2a6 6 0 0 1 6 6v3l1.5 2.5h-15L4 11V8a6 6 0 0 1 6-6z"/>
-               <path d="M8 16.5a2 2 0 0 0 4 0"/>
-             </svg>`,
-  },
+
   {
     id:     "audit",
     label:  "Audit Log",
