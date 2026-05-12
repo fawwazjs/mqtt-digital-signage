@@ -155,6 +155,7 @@ function _zoomStep() {
 }
 
 /**
+ * @param {DisplayId} id
  * @param {MapStatus} status
  * @param {number} size
  */

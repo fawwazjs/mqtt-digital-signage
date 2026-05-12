@@ -255,7 +255,16 @@ function _renderFeed() {
 
   const list = _filteredNotifs();
   if (!list.length) {
-    feed.innerHTML = `<div class="nf-empty">No notifications match current filters.</div>`;
+    const noData = state.notifications.length === 0;
+    feed.innerHTML = noData
+      ? `<div class="nf-empty">
+           <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px">No notifications yet</div>
+           <div style="font-size:12px;color:var(--text-muted);max-width:300px;line-height:1.6;text-align:center">
+             Notifications appear when displays go offline, come online, or emergency alerts are issued.<br>
+             Run <code style="font-family:var(--font-mono);color:var(--accent)">./run_demo.sh</code> to see live events.
+           </div>
+         </div>`
+      : `<div class="nf-empty">No notifications match current filters.</div>`;
     return;
   }
 

@@ -112,7 +112,7 @@ $sidebarToggle.addEventListener("click", () => {
 $navItems.setAttribute("role", "navigation");
 $navItems.setAttribute("aria-label", "Main navigation");
 
-PAGES.forEach(page => {
+PAGES.filter(page => !page.hideFromNav).forEach(page => {
   const btn = document.createElement("button");
   btn.className = "nav-item";
   btn.dataset.page = page.id;
@@ -627,7 +627,7 @@ function _notificationMeta(n) {
 /** @param {import("../types/state").DashboardNotification} n */
 function _navigateFromNotification(n) {
   if (n.type === "display_offline" || n.type === "display_online" || n.type === "maintenance_alert") {
-    window._pendingMapDisplay = /** @type {DisplayId} */ (n.ref);
+    Object.assign(window, { _pendingMapDisplay: /** @type {DisplayId} */ (n.ref) });
     navigateTo("map");
     return;
   }

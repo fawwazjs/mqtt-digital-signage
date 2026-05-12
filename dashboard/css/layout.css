@@ -222,7 +222,7 @@
   min-height: 66px;
   padding: 10px 12px;
   display: grid;
-  grid-template-columns: 58px 1fr auto;
+  grid-template-columns: auto 1fr auto;
   gap: 10px;
   align-items: start;
   text-align: left;

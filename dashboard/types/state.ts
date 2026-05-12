@@ -60,6 +60,7 @@ export interface PageConfig {
   readonly topics: readonly MqttSubscriptionPattern[];
   readonly icon: string;
   readonly badge?: boolean;
+  readonly hideFromNav?: boolean;
 }
 
 export interface AlertTypeConfig {

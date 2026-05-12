@@ -117,8 +117,84 @@ body[data-theme="light"].high-contrast {
 }
 
 body.large-text {
-  font-size: 15px;
+  font-size: 16px;
 }
+
+/* ── Large text: scale key UI text meaningfully ────────────────────────────── */
+
+/* Typography classes */
+body.large-text .t-body   { font-size: 16px; }
+body.large-text .t-small  { font-size: 14px; }
+body.large-text .t-label  { font-size: 13px; }
+body.large-text .t-ts     { font-size: 12px; }
+body.large-text .t-page   { font-size: 26px; }
+body.large-text .t-section{ font-size: 20px; }
+body.large-text .t-card   { font-size: 16px; }
+
+/* Topbar */
+body.large-text #topbar-title                { font-size: 17px; }
+body.large-text #topbar-subtitle             { font-size: 12px; }
+body.large-text .topbar-kpi span:first-child { font-size: 18px; }
+body.large-text .topbar-kpi span:last-child  { font-size: 12px; }
+body.large-text #conn-label                  { font-size: 13px; }
+body.large-text #topbar-clock               { font-size: 13px; }
+
+/* Sidebar */
+body.large-text .nav-label { font-size: 11px; }
+
+/* Notification bell popover */
+body.large-text .np-title { font-size: 14px; }
+body.large-text .np-desc  { font-size: 13px; }
+body.large-text .np-ts    { font-size: 12px; }
+body.large-text .np-sev   { font-size: 12px; }
+
+/* Notification feed page */
+body.large-text .nf-title  { font-size: 14px; }
+body.large-text .nf-desc   { font-size: 13px; }
+body.large-text .nf-ts     { font-size: 12px; }
+body.large-text .nf-expand-key,
+body.large-text .nf-expand-val,
+body.large-text .nf-expand-row { font-size: 12px; }
+
+/* Analytics */
+body.large-text .an-title      { font-size: 26px; }
+body.large-text .an-kpi strong { font-size: 22px; }
+body.large-text .an-kpi span   { font-size: 12px; }
+body.large-text .an-bar-row    { font-size: 14px; }
+body.large-text .an-table      { font-size: 14px; }
+body.large-text .an-panel-head { font-size: 12px; }
+
+/* Content management */
+body.large-text .cm-tab     { font-size: 14px; }
+body.large-text .lib-title  { font-size: 14px; }
+body.large-text .ws-title   { font-size: 14px; }
+body.large-text .section-heading { font-size: 13px; }
+body.large-text .assign-label   { font-size: 12px; }
+
+/* Map panel */
+body.large-text .panel-title         { font-size: 15px; }
+body.large-text .panel-section-header{ font-size: 12px; }
+body.large-text .panel-stat-value    { font-size: 18px; }
+body.large-text .panel-stat-label    { font-size: 12px; }
+body.large-text .panel-meta          { font-size: 12px; }
+
+/* Grid */
+body.large-text .gc-name   { font-size: 12px; }
+body.large-text .gc-detail { font-size: 11px; }
+
+/* Audit log */
+body.large-text .au-controls,
+body.large-text #au-wrap td  { font-size: 13px; }
+
+/* Buttons */
+body.large-text button        { font-size: 15px; }
+body.large-text .btn-inline   { font-size: 13px; }
+
+/* Form inputs */
+body.large-text select,
+body.large-text input[type="text"],
+body.large-text input[type="search"],
+body.large-text textarea { font-size: 14px; }
 
 body.reduce-motion *,
 body.reduce-motion *::before,

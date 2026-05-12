@@ -114,11 +114,9 @@ class ScreenClient(MqttNode):
             self.current_content = "Default Logo"
             return
         message = payload.get("message", "Emergency")
-        self.log(f"\n{Fore.RED}{Style.BRIGHT}=========================================", category="SUB")
-        self.log(f"{Fore.RED}{Style.BRIGHT}[!!! EMERGENCY ALERT !!!]")
+        self.log(f"{Fore.RED}{Style.BRIGHT}[EMERGENCY ALERT!]")
         self.log(f"{Fore.RED}{Style.BRIGHT}MESSAGE : {message}")
         self.log(f"{Fore.RED}{Style.BRIGHT}SEVERITY: {payload.get('severity', 'CRITICAL')}")
-        self.log(f"{Fore.RED}{Style.BRIGHT}========================================={Style.RESET_ALL}\n")
         self.current_content = f"EMERGENCY: {message}"
 
     def _handle_content(self, payload, msg):

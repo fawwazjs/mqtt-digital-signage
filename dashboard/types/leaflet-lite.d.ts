@@ -13,6 +13,7 @@ declare namespace L {
   interface Map {
     invalidateSize(): void;
     getZoom(): number;
+    setView(center: LatLngTuple, zoom?: number, options?: { readonly animate?: boolean }): Map;
     fitBounds(bounds: LatLngBounds, options?: FitBoundsOptions): void;
     on(eventName: "click" | "zoom", handler: (event: LeafletMouseEvent) => void): void;
   }
@@ -21,6 +22,13 @@ declare namespace L {
     addTo(map: Map): Marker;
     on(eventName: "mouseover" | "mouseout" | "click", handler: (event: LeafletMouseEvent) => void): void;
     setIcon(icon: DivIcon): Marker;
+    getElement(): HTMLElement | null;
+  }
+
+  interface Circle {
+    addTo(map: Map): Circle;
+    remove(): void;
+    setStyle(style: CircleOptions): Circle;
   }
 
   interface TileLayer {
@@ -57,11 +65,30 @@ declare namespace L {
     readonly riseOnHover?: boolean;
   }
 
+  interface CircleOptions {
+    readonly radius?: number;
+    readonly color?: string;
+    readonly fillColor?: string;
+    readonly fillOpacity?: number;
+    readonly weight?: number;
+    readonly opacity?: number;
+    readonly interactive?: boolean;
+  }
+
+  interface ZoomControl {
+    addTo(map: Map): ZoomControl;
+  }
+
+  namespace control {
+    function zoom(options?: { position?: string }): ZoomControl;
+  }
+
   function map(element: HTMLElement, options?: MapOptions): Map;
   function tileLayer(url: string, options?: TileLayerOptions): TileLayer;
   function latLngBounds(latlngs: readonly LatLngTuple[]): LatLngBounds;
   function divIcon(options: DivIconOptions): DivIcon;
   function marker(latlng: LatLngTuple, options?: MarkerOptions): Marker;
+  function circle(latlng: LatLngTuple, options?: CircleOptions): Circle;
 
   namespace DomEvent {
     function stopPropagation(event: LeafletMouseEvent): void;

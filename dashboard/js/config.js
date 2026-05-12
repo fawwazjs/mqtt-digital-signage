@@ -104,10 +104,11 @@ const PAGES = [
              </svg>`,
   },
   {
-    id:     "notifications",
-    label:  "Notifications",
-    badge:  true,
-    topics: ["display/+/status", "alert/#", "maintenance/+/alert"],
+    id:          "notifications",
+    label:       "Notifications",
+    badge:       true,
+    hideFromNav: true,
+    topics:      ["display/+/status", "alert/#", "maintenance/+/alert"],
     icon:   `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                <path d="M10 2a6 6 0 0 1 6 6v3l1.5 2.5h-15L4 11V8a6 6 0 0 1 6-6z"/>
                <path d="M8 16.5a2 2 0 0 0 4 0"/>

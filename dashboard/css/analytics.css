@@ -171,6 +171,16 @@
   color: var(--text-muted);
 }
 
+.an-empty-page {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-primary);
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

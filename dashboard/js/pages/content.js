@@ -449,7 +449,7 @@ function _buildAlertsPanel() {
         </div>
       </div>
 
-      <div class="af-section" id="af-details" style="display:none">
+      <div class="af-section" id="af-details">
         <div class="section-heading" style="margin-bottom:14px">Alert Configuration</div>
         <div class="af-row">
           <div class="assign-field">
@@ -588,7 +588,8 @@ function _onIssueAlert() {
 
   /** @type {AlertScope} */
   const scopeType = /** @type {AlertScope} */ (scopeTypeEl?.value || "network");
-  const scopeId   = scopeType === "network" ? "all" : (scopeValEl?.value || "all");
+  // Replace spaces with underscores — MQTT topic segments must not contain spaces.
+  const scopeId   = (scopeType === "network" ? "all" : (scopeValEl?.value || "all")).replace(/\s+/g, "_");
   /** @type {AlertSeverity} */
   const severity  = /** @type {AlertSeverity} */ (severityEl?.value || "critical");
   const expiry    = expiryEl?.value || "60";

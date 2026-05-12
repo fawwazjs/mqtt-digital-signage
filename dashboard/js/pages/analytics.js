@@ -34,6 +34,7 @@ window.onMsg_analytics = function(_msg) {
 function _renderAnalytics() {
   const root = document.getElementById("analytics-root");
   if (!root) return;
+
   const rows = _analyticsRows();
   const filtered = _filterRows(rows);
   const totalViewers = filtered.reduce((n, r) => n + r.viewers, 0);
@@ -161,6 +162,7 @@ function _contentActivity() {
 /** @param {ReturnType<typeof _analyticsRows>} rows */
 function _zoneComparison(rows) {
   /** @type {Record<string, number>} */
+  /** @type {Record<string, number>} */
   const out = {};
   rows.forEach(r => { out[r.zone] = (out[r.zone] || 0) + r.viewers; });
   return _barChart(out);
@@ -168,6 +170,7 @@ function _zoneComparison(rows) {
 
 /** @param {ReturnType<typeof _analyticsRows>} rows */
 function _zoneTable(rows) {
+  /** @type {Record<string, number>} */
   const totals = {};
   rows.forEach(r => { totals[r.zone] = (totals[r.zone] || 0) + r.viewers; });
   return _tableFromObject(totals);
