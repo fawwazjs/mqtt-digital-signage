@@ -335,7 +335,15 @@ Untuk mencoba skenario terintegrasi, pastikan manajemen dependensi paket telah s
 
 <img width="953" height="411" alt="Image" src="https://github.com/user-attachments/assets/dc9fe711-7a13-428f-9709-ba3190d74ce6" />
 
+<img width="953" height="409" alt="Screenshot 2026-05-13 225203" src="https://github.com/user-attachments/assets/fb246b88-3b17-4f85-8f0b-25a908ef72de" />
 
+<img width="953" height="405" alt="Screenshot 2026-05-13 225218" src="https://github.com/user-attachments/assets/f4cee6ae-aa80-4fc4-a0cc-e78030041b9e" />
+
+<img width="953" height="411" alt="Screenshot 2026-05-13 225248" src="https://github.com/user-attachments/assets/e2b17887-0db3-49f0-8208-eec15fd0a1e8" />
+
+<img width="953" height="410" alt="Screenshot 2026-05-13 230529" src="https://github.com/user-attachments/assets/bf01002d-da7c-4ef0-b776-ac35caf468e3" />
+
+<img width="953" height="411" alt="Screenshot 2026-05-13 230541" src="https://github.com/user-attachments/assets/3f5db0ef-2258-4b15-aa49-402250acd3d3" />
 
 
 ### Simulasi Darurat (terminal terpisah)
