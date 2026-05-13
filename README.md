@@ -13,6 +13,71 @@
 <b>Pulsar</b> adalah simulasi implementasi dari sistem perangkat lunak pengontrol papan reklame digital atau <i>Digital Signage</i> terdistribusi yang didukung oleh protokol komunikasi <b>MQTT</b>. Pulsar juga didukung dengan implementasi <i>dashboard</i> yang dapat digunakan untuk memanajemen dan melihat secara visual reklame digital yang ditangani dalam suatu area, mendapatkan data analitik yang meliputi posisi status, kesehatan, <i>viewership</i>, dan apa yang sedang ditayangkan reklame tersebut dengan menggunakan integrasi <b>WebSocket</b> yang terhubung langsung dengan sistem MQTT. Di mana melalui penerapan terpusat ini, sistem diharapkan mampu menjalankan koordinasi tersinkronisasi, pemantauan <i>real-time</i>, hingga penanganan kedaruratan dengan lebih efisien dan efektif.
 </p>
 
+## Arsitektur dan Aliran Data (Data Flow)
+
+Sistem mengadopsi arsitektur **Decoupled Microservices**. Tidak ada satu pun layanan yang mengetahui keberadaan layanan lain secara langsung; semua interaksi dimediasi oleh MQTT Broker.
+
+<img width="1802" height="589" alt="Image" src="https://github.com/user-attachments/assets/5ff28305-4f2f-44b3-9f42-efd95129b3de" />
+
+### Skenario Aliran Data:
+1.  **Update Konten**: Scheduler mengirimkan instruksi ke topik `content/zone/+/schedule`. Layar yang berlangganan pada zona tersebut akan segera mengganti konten yang ditampilkan.
+2.  **Keadaan Darurat**: Emergency Manager mengirimkan pesan dengan **QoS 2** (Exactly Once) ke topik `alert/network/emergency`. Semua layar akan menghentikan konten komersial dan menampilkan instruksi evakuasi dalam hitungan milidetik.
+3.  **Analitik Viewership**: Layar mengirimkan data penonton ke topik `analytics/zone/+/viewership`. Data ini dikonsumsi oleh sekelompok worker menggunakan **Shared Subscription** untuk memastikan efisiensi pemrosesan.
+
+---
+
+## Desain Hierarki Topik (Topic Tree)
+
+### Visualisasi Topic Tree:
+
+```text
+root/
+├── display/
+│   └── {screen_id}/
+│       ├── status                  # LWT/Koneksi (Retained)
+│       ├── health                  # Telemetri Hardware (CPU, Temp)
+│       ├── request/
+│       │   └── playlist            # RPC Request (Client -> Scheduler)
+│       └── response/
+│           └── playlist            # RPC Response (Scheduler -> Client)
+├── content/
+│   ├── zone/
+│   │   └── {zone_id}/
+│   │       └── schedule            # Konten terjadwal per area
+│   └── display/
+│       └── {screen_id}/
+│           └── override            # Konten khusus layar tertentu
+├── alert/
+│   ├── network/
+│   │   ├── emergency               # Pesan evakuasi global (QoS 2)
+│   │   └── maintenance             # Pemberitahuan sistem (QoS 1)
+│   └── zone/
+│       └── {zone_id}/
+│           └── emergency           # Pesan darurat area spesifik
+├── analytics/
+│   └── zone/
+│       └── {zone_id}/
+│           └── viewership          # Data sensor penonton (Shared Sub)
+└── environment/
+    └── zone/
+        └── {zone_id}/
+            └── weather             # Informasi cuaca lokal
+```
+
+### Rincian Topik dan Parameter:
+
+| Pola Topik | Deskripsi | QoS | Retain | Karakteristik |
+| :--- | :--- | :--- | :--- | :--- |
+| `display/{id}/status` | Status koneksi layar (Online/Offline) | 1 | Yes | Menggunakan **LWT** untuk deteksi kegagalan. |
+| `display/{id}/health` | Telemetri (CPU, Temp, RAM, Uptime) | 0 | Yes | Data streaming cepat, kehilangan 1 pesan tidak krusial. |
+| `display/{id}/request/playlist` | RPC: Layar meminta daftar putar | 1 | No | Menggunakan **Response Topic** dan **Correlation Data**. |
+| `content/zone/{id}/schedule` | Instruksi konten berdasarkan zona | 1 | Yes | Memastikan layar baru menyala langsung mendapat konten. |
+| `alert/network/#` | Peringatan global (Kebakaran, Gempa, dll) | 2 | Yes | Menjamin pesan sampai tepat satu kali ke semua layar. |
+| `analytics/zone/{id}/viewership` | Data sensor penonton (Face Tracking) | 0 | No | Diolah menggunakan **Shared Subscriptions**. |
+| `environment/zone/{id}/weather` | Data cuaca lokal untuk display info | 0 | No | Broadcast berkala. |
+
+---
+
 ## Rincian Implementasi Fitur MQTT
 
 <p align="justify">
@@ -117,6 +182,113 @@ Adapun, tabel di bawah ini merangkum kapabilitas protokol MQTT yang difungsikan 
 </table>
 
 <br>
+
+---
+
+## 4. Implementasi Fitur MQTT 5.0 (Deep Dive)
+
+Sistem ini mendemonstrasikan keunggulan MQTT 5.0 melalui implementasi 9 fitur utama yang menjamin keandalan dan efisiensi jaringan:
+
+### A. Topic Hierarchy & Wildcards
+Struktur topik dirancang secara hierarkis untuk pemfilteran efisien menggunakan wildcard `+` (single-level) dan `#` (multi-level).
+```python
+# Contoh penggunaan di Database Logger (db_logger.py)
+# Berlangganan ke SELURUH trafik jaringan menggunakan wildcard '#'
+self.subscribe("#", qos=0)
+
+# Contoh di Dashboard Server (dashboard_server.py)
+# Berlangganan ke health seluruh layar tanpa peduli ID layarnya
+self.subscribe("display/+/health", qos=0)
+```
+
+### B. Retained Messages
+Menyimpan pesan terakhir di broker sehingga layar yang baru menyala (*late-joiner*) langsung mendapatkan status terbaru tanpa menunggu publikasi berikutnya.
+```python
+# Lokasi: scheduler.py
+# Menyimpan jadwal konten terakhir agar layar yang reboot langsung tahu apa yang harus diputar
+self.publish(f"content/zone/{zone_id}/schedule", payload, qos=1, retain=True)
+```
+
+### C. Message Expiry Interval
+Menetapkan masa berlaku pesan agar instruksi yang sudah basi (seperti peringatan cuaca atau darurat lama) tidak diterima oleh layar yang baru aktif setelah sekian lama.
+```python
+# Lokasi: emergency.py
+# Pesan darurat hanya berlaku selama 1 jam (3600 detik)
+self.publish("alert/network/emergency", payload, qos=2, expiry=3600)
+```
+
+### D. User Properties (Metadata)
+Menyisipkan pasangan kunci-nilai (Key-Value) kustom pada header pesan untuk metadata operasional tanpa mengubah payload JSON utama.
+```python
+# Lokasi: screen_client.py
+# Mengirim tipe zona sebagai metadata analitik
+user_props = [("zone_type", "campus_area"), ("priority", "high")]
+self.publish(topic, payload, user_properties=user_props)
+```
+
+### E. Topic Alias
+*Konsep:* Mengurangi overhead bandwidth dengan mengganti string topik yang panjang menjadi ID integer (2-byte) setelah pengiriman pertama.
+*(Catatan: Fitur ini ditangani secara otomatis oleh library paho-mqtt jika dikonfigurasi, sangat krusial untuk koneksi seluler/low-bandwidth).*
+
+### F. Last Will and Testament (LWT)
+Mekanisme "Pesan Wasiat" yang dikirim otomatis oleh broker jika layar terputus secara tidak wajar (misal: crash atau kehilangan daya).
+```python
+# Lokasi: screen_client.py
+lwt = {
+    "topic": f"display/{self.screen_id}/status",
+    "payload": json.dumps({"status": "offline", "reason": "Connection Lost"}),
+    "qos": 1,
+    "retain": True,
+}
+self.connect(last_will=lwt)
+```
+
+### G. Request-Response Pattern
+Menggunakan atribut `ResponseTopic` dan `CorrelationData` untuk pola komunikasi dua arah (RPC) murni di atas MQTT.
+```python
+# Lokasi: screen_client.py (Request)
+self.publish(
+    "display/request/playlist", 
+    payload, 
+    response_topic=f"display/{self.screen_id}/response",
+    correlation_data=b"req_v1_001"
+)
+```
+
+### H. Shared Subscriptions
+Mendistribusikan beban konsumsi pesan ke sekelompok worker secara *round-robin* untuk menghindari kelebihan beban pada satu instansi.
+```python
+# Lokasi: analytics_worker.py
+# Menggunakan format $share/{group_id}/{topic}
+self.subscribe("$share/analytics_cluster/analytics/zone/+/viewership", qos=0)
+```
+
+### I. Flow Control (Receive Maximum)
+Membatasi jumlah pesan QoS 1/2 yang "in-flight" (sedang diproses) untuk mencegah *flooding* pada memori perangkat layar dengan spesifikasi rendah.
+```python
+# Lokasi: common.py
+# Membatasi maksimal 20 pesan in-flight secara bersamaan
+properties = Properties(PacketTypes.CONNECT)
+properties.ReceiveMaximum = 20
+self.client.connect(host, port, properties=properties)
+```
+
+---
+
+Sistem Dasbor dan Visualisasi
+
+### A. Web Dashboard (High-End Operations Center)
+Dibangun menggunakan teknologi web modern untuk memberikan visibilitas total bagi operator.
+*   **Dashboard Server (`dashboard_server.py`)**: Jembatan asinkron antara MQTT dan WebSockets. Mempertahankan "State Snapshot" untuk sinkronisasi instan saat halaman dimuat.
+*   **Visualisasi Geografis**: Integrasi **Leaflet.js** untuk memetakan lokasi layar. Status online/offline divisualisasikan dengan warna dinamis.
+*   **Grid Telemetri**: Menampilkan performa hardware layar yang diperbarui secara real-time.
+*   **Content Management**: Antarmuka untuk mengunggah media dan memantau antrean pemutaran.
+
+### B. Terminal UI (TUI - Admin Tool)
+Dibangun menggunakan library **Textual** dan **Rich**, memberikan alat debugging yang sangat kuat bagi pengembang.
+*   **9-Panel Grid**: Menampilkan status dari seluruh microservices (Weather, Scheduler, Bidder, dll) dalam satu tampilan.
+*   **Real-time Event Log**: Monitor setiap paket MQTT (Publish, Subscribe, Connect) dengan pewarnaan sintaksis yang jelas.
+*   **Lifecycle Manager**: Memungkinkan kontrol penuh atas proses simulasi dari dalam terminal.
 
 ---
 
