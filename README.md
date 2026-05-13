@@ -134,7 +134,7 @@ Adapun, tabel di bawah ini merangkum kapabilitas protokol MQTT yang difungsikan 
       <td style="padding: 10px; text-align: center;">7</td>
       <td style="padding: 10px;"><b>Topic Alias</b></td>
       <td style="padding: 10px;">Optimisasi <i>header payload</i> yang mendaftarkan string rute topik panjang ke dalam integer (ID) 2-bita demi penghematan ukuran repetisi pesan di jaringan.</td>
-      <td style="padding: 10px;">-</td>
+      <td style="padding: 10px;">Fitur ini ditangani secara otomatis oleh library paho-mqtt</td>
     </tr>
     <tr>
       <td style="padding: 10px; text-align: center;">8</td>
@@ -322,7 +322,31 @@ Untuk mencoba skenario terintegrasi, pastikan manajemen dependensi paket telah s
 3. **Membuka Dasbor Pemantauan (Web GUI)**
    Buka peramban Web (*Browser*) favorit Anda lalu navigasikan ke tautan berikut:
    **[http://localhost:8080/](http://localhost:8080/)**
-   
+
+
+## Fitur Utama:
+- Halaman Peta<br>
+Halaman Peta yang di ambil dari OpenStreetMap berfungsi untuk memvisualisasikan bagaimana hubungan masing-masing reklame terhadap keseluruhan sistem, di mana fungsi utama halaman ini adalah untuk digunakan dalam melihat lokasi dari masing-masing reklame dalam titik koordinat. Selain itu, halaman ini juga memberikan gambaran sekilas mengenai jumlah penonton setiap reklame, kondisi statusnya, serta persebaran lokasinya. Harapannya, halaman ini dapat memberikan informasi relevan dalam manajemen fisik sistem reklame digital.<br>
+- Halaman Konten<br>
+Halaman ini berfungsi dalam menyediakan informasi mengenai isi konten dari masing-masing reklame secara real-time yang ditampilkan dalam formasi grid. Melalui halaman ini, pengguna dashboard dapat mengidentifikasi dan melakukan screening secara cepat terkait kesesuian dari apabila terjadi kendala atau ketidaktepatan dalam menampilkan konten.<br>
+- Halaman Analitik<br>
+Halaman ini berfungsi dalam menyediakan visualisasi mengenai grafik statistik performa kinerja sistem reklame secara keseluruhan bagi pengguna dashboard. Melalui halaman ini, harapannya pengguna dapat dengan tanggap dan cepat mengidentifikasi pola kinerja yang meliputi suhu, status aktif, dan jumlah penonton terhadap variabel skala waktu dan kuantitas. Sehingga, sistem reklame digital dapat di evaluasi performanya berdasarkan trayektori dari analitik yang didapatkan dari halaman ini untuk meningkatkan kualitas sistem ke depannya.<br>
+- Halaman Manajemen Konten<br>
+Halaman ini memberikan kapabilitas bagi pengguna dashboard untuk dapat menayangkan, mengubah, dan menghapus isi konten dari reklame digital yang di manajemen oleh sistem tanpa perlu melakukannya secara manual melalui MQTT dan meninggalkan dashboard. Harapannya, melalui halaman ini pengguna dashboard mampu mendapatkan umpan balik secara real-time dari sistem mengenai perubahan yang dilakukan terhadap konten reklame, sehingga atensi dari pengguna dashboard dapat dialihkan ke aspek yang lebih penting dalam manajemen konten, yakni memberikan konten yang berkualitas sesuai ekspektasi tanpa perlu mengkhawatirkan apakah konten tersebut sudah tayang atau belum.<br>
+- Halaman Pencatatan<br>
+Halaman ini memberikan pengguna dashboard informasi langsung mengenai keluaran masing-masing bagian dari MQTT secara langsung via integrasi WebSocket. Halaman ini cenderung berguna lebih sebagai fallback di mana bagian lain dari dashboard yang di pantau kurang dapat memberikan umpan balik yang diharapkan dalam proses identifikasi masalah atau analisis. Harapannya, halaman ini memberikan gambaran langsung kinerja sistem dengan menggabungkan keseluruhan catatan menjadi satu tampilan visual yang dapat memperluas scope informasi dari pengguna dashboard sehingga dapat mengidentifikasi masalah dengan lebih efisien.<br>
+
+
+## Fitur Sekunder:
+- Aksesibilitas Penggunaan Sistem<br>
+Dashboard ini disediakan dengan fitur aksesibilitas yang dapat dikonfigurasikan melalui pengaturan dashboard. Hal ini membantu pengguna yang mungkin mengalami kendala dalam menavigasi sistem dengan memberikan kemampuan untuk membesarkan teks, menambah kontras, dan menghidup mematikan notification sound.<br>
+- Mode Gelap dan Mode Terang<br>
+Dashboard menyediakan opsi bagi pengguna untuk mengubah tampilan layar menjadi mode gelap atau dialihkan ke mode terang sesuai dengan preferensi pengguna.<br>
+- Indikator Koneksi Sistem<br>
+Pada bagian header dari dashboard, tertera indikator yang menunjukkan bahwasannya apakah proses MQTT yang berada di belakang antarmuka sedang berjalan atau tidak. Hal ini membantu pengguna dashboard untuk dapat mengidentifikasi secara sekilas dengan cepat dan menentukan apakah sistem memerlukan pemulaian ulang atau tidak.<br>
+- Notifikasi Pemberitahuan
+Alih Darurat Bencana<br>
+
 <img width="953" height="413" alt="Image" src="https://github.com/user-attachments/assets/bfeba0af-d12c-462a-b3b0-13739571006f" />
 
 <img width="953" height="410" alt="Image" src="https://github.com/user-attachments/assets/a9a749a6-f8bf-407e-bd5d-b7a4f35da5e5" />
