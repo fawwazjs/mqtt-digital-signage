@@ -349,4 +349,23 @@ Perintah `--clear` untuk mengakhiri darurat:
 python emergency.py --clear
 ```
 
+Saat menjalankan 
+```bash
+source .venv/bin/activate
+python emergency.py "EVAKUASI AREA LOBBY SEKARANG"
+```
+<img width="635" height="185" alt="Screenshot 2026-05-13 230635" src="https://github.com/user-attachments/assets/0694f716-55ca-490d-92c3-9dea85629407" />
+
+<img width="953" height="409" alt="Screenshot 2026-05-13 230814" src="https://github.com/user-attachments/assets/39fc405f-fe60-4ea2-a7be-01cc944ea323" />
+
+<img width="953" height="406" alt="Screenshot 2026-05-13 230829" src="https://github.com/user-attachments/assets/90172828-b56b-4bcb-b5e4-807b6148a096" />
+
+Setelah menjalankan
+```bash
+python emergency.py --clear
+```
+Akan kembali normal seperti biasa<br>
+<img width="641" height="179" alt="Screenshot 2026-05-13 231037" src="https://github.com/user-attachments/assets/3d49f7b1-ab3b-4e77-a485-31a0c34aea95" />
+<img width="952" height="410" alt="Screenshot 2026-05-13 231054" src="https://github.com/user-attachments/assets/89ba80d2-3cf0-43d8-84f5-25cab48e2afb" />
+
 </div>
