@@ -294,6 +294,9 @@ Dashboard menampilkan 9 panel dalam grid 3×3 (Halaman 1) dan satu panel log pen
 
 <img width="629" height="456" alt="Image" src="https://github.com/user-attachments/assets/c31c80d9-0da8-4bc9-9209-905b763ab67a" />
 
+<img width="1278" height="911" alt="image" src="https://github.com/user-attachments/assets/c90c4da3-a58b-4f10-b7f3-d33836792203" />
+
+
 | Tombol | Fungsi |
 |--------|--------|
 | `Tab` | Ganti halaman |
@@ -337,6 +340,19 @@ Halaman ini memberikan kapabilitas bagi pengguna dashboard untuk dapat menayangk
 Halaman ini memberikan pengguna dashboard informasi langsung mengenai keluaran masing-masing bagian dari MQTT secara langsung via integrasi WebSocket. Halaman ini cenderung berguna lebih sebagai fallback di mana bagian lain dari dashboard yang di pantau kurang dapat memberikan umpan balik yang diharapkan dalam proses identifikasi masalah atau analisis. Harapannya, halaman ini memberikan gambaran langsung kinerja sistem dengan menggabungkan keseluruhan catatan menjadi satu tampilan visual yang dapat memperluas scope informasi dari pengguna dashboard sehingga dapat mengidentifikasi masalah dengan lebih efisien.<br>
 
 
+
+<img width="953" height="413" alt="Image" src="https://github.com/user-attachments/assets/bfeba0af-d12c-462a-b3b0-13739571006f" />
+
+<img width="953" height="410" alt="Image" src="https://github.com/user-attachments/assets/a9a749a6-f8bf-407e-bd5d-b7a4f35da5e5" />
+
+<img width="953" height="409" alt="Image" src="https://github.com/user-attachments/assets/bf8a35f7-32b7-44d5-bd46-fa900ef4df98" />
+
+<img width="953" height="406" alt="Image" src="https://github.com/user-attachments/assets/478f5cc9-893d-4870-ae53-eec2e0bc7ba1" />
+
+<img width="953" height="410" alt="Screenshot 2026-05-13 230529" src="https://github.com/user-attachments/assets/bf01002d-da7c-4ef0-b776-ac35caf468e3" />
+
+<img width="953" height="411" alt="Screenshot 2026-05-13 230541" src="https://github.com/user-attachments/assets/3f5db0ef-2258-4b15-aa49-402250acd3d3" />
+
 ## Fitur Sekunder:
 - Aksesibilitas Penggunaan Sistem<br>
 Dashboard ini disediakan dengan fitur aksesibilitas yang dapat dikonfigurasikan melalui pengaturan dashboard. Hal ini membantu pengguna yang mungkin mengalami kendala dalam menavigasi sistem dengan memberikan kemampuan untuk membesarkan teks, menambah kontras, dan menghidup mematikan notification sound.<br>
@@ -347,14 +363,6 @@ Pada bagian header dari dashboard, tertera indikator yang menunjukkan bahwasanny
 - Notifikasi Pemberitahuan
 Alih Darurat Bencana<br>
 
-<img width="953" height="413" alt="Image" src="https://github.com/user-attachments/assets/bfeba0af-d12c-462a-b3b0-13739571006f" />
-
-<img width="953" height="410" alt="Image" src="https://github.com/user-attachments/assets/a9a749a6-f8bf-407e-bd5d-b7a4f35da5e5" />
-
-<img width="953" height="409" alt="Image" src="https://github.com/user-attachments/assets/bf8a35f7-32b7-44d5-bd46-fa900ef4df98" />
-
-<img width="953" height="406" alt="Image" src="https://github.com/user-attachments/assets/478f5cc9-893d-4870-ae53-eec2e0bc7ba1" />
-
 <img width="953" height="409" alt="Image" src="https://github.com/user-attachments/assets/b6cd3553-1525-4319-8139-5facc4029779" />
 
 <img width="953" height="411" alt="Image" src="https://github.com/user-attachments/assets/dc9fe711-7a13-428f-9709-ba3190d74ce6" />
@@ -364,10 +372,6 @@ Alih Darurat Bencana<br>
 <img width="953" height="405" alt="Screenshot 2026-05-13 225218" src="https://github.com/user-attachments/assets/f4cee6ae-aa80-4fc4-a0cc-e78030041b9e" />
 
 <img width="953" height="411" alt="Screenshot 2026-05-13 225248" src="https://github.com/user-attachments/assets/e2b17887-0db3-49f0-8208-eec15fd0a1e8" />
-
-<img width="953" height="410" alt="Screenshot 2026-05-13 230529" src="https://github.com/user-attachments/assets/bf01002d-da7c-4ef0-b776-ac35caf468e3" />
-
-<img width="953" height="411" alt="Screenshot 2026-05-13 230541" src="https://github.com/user-attachments/assets/3f5db0ef-2258-4b15-aa49-402250acd3d3" />
 
 
 ### Simulasi Darurat (terminal terpisah)
