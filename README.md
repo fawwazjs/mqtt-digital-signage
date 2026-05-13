@@ -290,6 +290,17 @@ Dibangun menggunakan library **Textual** dan **Rich**, memberikan alat debugging
 *   **Real-time Event Log**: Monitor setiap paket MQTT (Publish, Subscribe, Connect) dengan pewarnaan sintaksis yang jelas.
 *   **Lifecycle Manager**: Memungkinkan kontrol penuh atas proses simulasi dari dalam terminal.
 
+Dashboard menampilkan 9 panel dalam grid 3×3 (Halaman 1) dan satu panel log penuh (Halaman 2):
+
+<img width="629" height="456" alt="Image" src="https://github.com/user-attachments/assets/c31c80d9-0da8-4bc9-9209-905b763ab67a" />
+
+| Tombol | Fungsi |
+|--------|--------|
+| `Tab` | Ganti halaman |
+| `1` / `2` | Langsung ke halaman |
+| `Q` | Keluar (semua service dihentikan) |
+| `Ctrl+C` | Force kill |
+
 ---
 
 ## Petunjuk Pengoperasian Program (Run Demo)
@@ -311,5 +322,31 @@ Untuk mencoba skenario terintegrasi, pastikan manajemen dependensi paket telah s
 3. **Membuka Dasbor Pemantauan (Web GUI)**
    Buka peramban Web (*Browser*) favorit Anda lalu navigasikan ke tautan berikut:
    **[http://localhost:8080/](http://localhost:8080/)**
+   
+<img width="953" height="413" alt="Image" src="https://github.com/user-attachments/assets/bfeba0af-d12c-462a-b3b0-13739571006f" />
+
+<img width="953" height="410" alt="Image" src="https://github.com/user-attachments/assets/a9a749a6-f8bf-407e-bd5d-b7a4f35da5e5" />
+
+<img width="953" height="409" alt="Image" src="https://github.com/user-attachments/assets/bf8a35f7-32b7-44d5-bd46-fa900ef4df98" />
+
+<img width="953" height="406" alt="Image" src="https://github.com/user-attachments/assets/478f5cc9-893d-4870-ae53-eec2e0bc7ba1" />
+
+<img width="953" height="409" alt="Image" src="https://github.com/user-attachments/assets/b6cd3553-1525-4319-8139-5facc4029779" />
+
+<img width="953" height="411" alt="Image" src="https://github.com/user-attachments/assets/dc9fe711-7a13-428f-9709-ba3190d74ce6" />
+
+
+
+
+### Simulasi Darurat (terminal terpisah)
+Buka terminal baru kapan saja dan jalankan:
+```bash
+source .venv/bin/activate
+python emergency.py "EVAKUASI AREA LOBBY SEKARANG"
+```
+Perintah `--clear` untuk mengakhiri darurat:
+```bash
+python emergency.py --clear
+```
 
 </div>
