@@ -1,18 +1,25 @@
-<div style="text-align: justify; line-height: 1.6;">
+# Laporan Projek Implementasi MQTT - Pulsar: Sistem Kontrol Papan Reklame Digital
 
-# Laporan Implementasi MQTT 5.0: Jaringan Pengontrol Papan Reklame Digital
+## Anggota
 
-Proyek ini adalah implementasi nyata dari perangkat lunak pengontrol jaringan papan reklame digital (*Digital Signage*) terdistribusi yang didukung oleh protokol komunikasi MQTT versi 5.0. Melalui pemanfaatan standar *Internet of Things* (IoT) ini, sistem mampu menjalankan koordinasi tersinkronisasi, pemantauan *real-time*, hingga penanganan kedaruratan tanpa memerlukan perangkat keras fisik yang terdedikasi. 
+| Nama | NRP|
+|-------------------------------|---------------|
+| Ahmad Wildan Fawwaz| 5027241001 |
+| Muhammad Rakha Hananditya R.| 5027241015 |
 
-Sistem secara penuh memanfaatkan dan mendemonstrasikan keunggulan arsitektur *Publish-Subscribe* modern. Seluruh layanan (*services*) beroperasi secara asinkron dan saling terhubung secara eksklusif melalui perantara MQTT broker. Sebagai bentuk pemenuhan kriteria teknis, kode ini telah mengimplementasikan **13 dari 14 fitur MQTT lanjutan** untuk memastikan ketahanan jaringan, reliabilitas pengiriman informasi, efisiensi lalu lintas data, serta fleksibilitas *monitoring*.
+## Deskripsi Projek
 
----
+<p align="justify">
+<b>Pulsar</b> adalah simulasi implementasi dari sistem perangkat lunak pengontrol papan reklame digital atau <i>Digital Signage</i> terdistribusi yang didukung oleh protokol komunikasi <b>MQTT</b>. Pulsar juga didukung dengan implementasi <i>dashboard</i> yang dapat digunakan untuk memanajemen dan melihat secara visual reklame digital yang ditangani dalam suatu area, mendapatkan data analitik yang meliputi posisi status, kesehatan, <i>viewership</i>, dan apa yang sedang ditayangkan reklame tersebut dengan menggunakan integrasi <b>WebSocket</b> yang terhubung langsung dengan sistem MQTT. Di mana melalui penerapan terpusat ini, sistem diharapkan mampu menjalankan koordinasi tersinkronisasi, pemantauan <i>real-time</i>, hingga penanganan kedaruratan dengan lebih efisien dan efektif.
+</p>
 
 ## Rincian Implementasi Fitur MQTT
 
-Tabel di bawah ini merangkum kapabilitas protokol MQTT yang difungsikan dalam sistem beserta urgensi arsitektural dan letak berkas (file) implementasinya.
+<p align="justify">
+Adapun, tabel di bawah ini merangkum kapabilitas protokol MQTT yang difungsikan dalam sistem beserta urgensi arsitektural dan letak implementasinya:
+</p>
 
-<table border="1" style="width:100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+<table border="1" style="width:100%; border-collapse: collapse; text-align: justify; font-size: 14px;">
   <thead style="background-color: rgba(255,255,255,0.1);">
     <tr>
       <th style="padding: 10px;">No</th>
@@ -25,14 +32,14 @@ Tabel di bawah ini merangkum kapabilitas protokol MQTT yang difungsikan dalam si
     <tr>
       <td style="padding: 10px; text-align: center;">1</td>
       <td style="padding: 10px;"><b>Publish</b></td>
-      <td style="padding: 10px;">Mengirimkan pesan melalui perantara broker. Pesan ini akan dialirkan kepada seluruh klien (*subscriber*) yang berlangganan pada rute topik yang sesuai.</td>
-      <td style="padding: 10px;">Diimplementasikan melalui metode *wrapper* dasar <code>publish()</code> pada <code>common.py</code>. Digunakan oleh seluruh modul seperti <code>emergency.py</code>, <code>scheduler.py</code>, <code>screen_client.py</code>, dan peladen dasbor (WebSocket).</td>
+      <td style="padding: 10px;">Mengirimkan pesan melalui perantara broker. Pesan ini akan dialirkan kepada seluruh <i>subscriber</i> yang berlangganan pada rute topik yang sesuai.</td>
+      <td style="padding: 10px;">Diimplementasikan melalui implementasi <code>publish()</code> pada <code>common.py</code>. Di mana digunakan dalam kode <code>emergency.py</code>, <code>scheduler.py</code>, <code>screen_client.py</code>, dan dashboard Pulsar.</td>
     </tr>
     <tr>
       <td style="padding: 10px; text-align: center;">2</td>
       <td style="padding: 10px;"><b>Subscribe</b></td>
-      <td style="padding: 10px;">Mendaftarkan ketertarikan untuk menerima pesan berdasarkan pola topik, mengarahkan rute broker untuk memanggil fungsi <i>callback</i> <code>on_message</code>.</td>
-      <td style="padding: 10px;">Terdapat di fungsi dasar <code>common.py</code>. Diaplikasikan di berbagai layanan; contohnya layar (<code>screen_client.py</code>) yang berlangganan cuaca dan konten, serta pekerja analitik (<code>analytics_worker.py</code>).</td>
+      <td style="padding: 10px;">Mendaftarkan langganan untuk menerima pesan berdasarkan topik yang ditetapkan, serta mengarahkan rute broker untuk memanggil fungsi <i>callback</i> <code>on_message</code>.</td>
+      <td style="padding: 10px;">Diimplementasikan pada <code>common.py</code>, layar <code>screen_client.py</code> yang berlangganan cuaca dan konten, serta pekerja analitik <code>analytics_worker.py</code>.</td>
     </tr>
     <tr>
       <td style="padding: 10px; text-align: center;">3</td>
@@ -62,7 +69,7 @@ Tabel di bawah ini merangkum kapabilitas protokol MQTT yang difungsikan dalam si
       <td style="padding: 10px; text-align: center;">7</td>
       <td style="padding: 10px;"><b>Topic Alias</b></td>
       <td style="padding: 10px;">Optimisasi <i>header payload</i> yang mendaftarkan string rute topik panjang ke dalam integer (ID) 2-bita demi penghematan ukuran repetisi pesan di jaringan.</td>
-      <td style="padding: 10px;"><b>Tidak diimplementasikan</b>. Ekosistem proyek berjalan di dalam arsitektur simulasi berskala menengah. Pemangkasan kompresi *overhead* tidak krusial dan belum memberikan nilai keandalan yang terukur jelas di konteks ini.</td>
+      <td style="padding: 10px;">-</td>
     </tr>
     <tr>
       <td style="padding: 10px; text-align: center;">8</td>
